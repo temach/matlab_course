@@ -1,0 +1,7 @@
+%%
+% if ode has an "s" at
+[t,y] = ode15s(@rigid, [0,1000], [2, 0]);
+plot(t,y(:,1));
+hold on;
+[t,y] = ode45(@myrigid, [0,1000], [2,0]);
+plot(t,y(:,1));

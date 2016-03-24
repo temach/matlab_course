@@ -1,0 +1,24 @@
+% value = tells us event has occured 
+% here value will be array of two values, because we work with only two
+% events
+% isterminal = should we break on this event
+% direciton = which direction are we approaching the value from
+% direction can be (-1, 0, +1) == (decreasing, steady, increasing)
+function [value, isterminal, direction] = myevents(t,y,air_resist,mass)
+
+% event_1 = fell on ground
+% value = y(3) = 0
+% isterminal = 1 (true, break on this event)
+% direction = -1 (we are falling)
+
+value = [y(3), y(4)]
+isterminal = [1, 0]
+direc
+
+% event_2 = fell on ground
+% value = y(3) = 0
+% isterminal = 1 (true, break on this event)
+% direction = -1 (we are falling)
+
+
+end

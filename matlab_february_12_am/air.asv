@@ -1,0 +1,92 @@
+%% matlab 12/02/2016 am
+% alpha - start angle 
+% air_resist - koefficient of air resistance
+% mass - weight of canon ball
+% v0 - initial speed of canon ball
+% y0 - starting height of canon ball
+function [t,y]=air(alpha,air_resist,mass,v0,y0,varargin)
+
+% if args is empty run multiple demonstrations
+if nargin < 1
+    shg
+    ylim([0, Inf]);
+    daspect([1,1,1])
+    hold on
+    xlabel('x');
+    ylabel('y')
+    grid on;
+    % just random vals to show stuff off
+    air(pi/4, [], [], [], [], 'b:')
+    air(pi/6, [], [], [], [], 'm:')
+    air(pi/3, [], [], [], [], 'k:')
+
+    % now add small air resistance
+    air(pi/4, 1e-3, [], [], [], 'b')
+    air(pi/6, 1e-3, [], [], [], 'm')
+    air(pi/3, 1e-3, [], [], [], 'k')
+    
+    % the strings go in the order that lines are drawn on the graph
+    legend('\pi over 4',  ...
+        '\pi over 6', ...
+        '\pi over 3', ...
+        '\pi over 4 with ari resist', ...
+        '\pi over 6 with ari resist', ...
+        '\pi over 3 with ari resist');
+    return;
+end
+
+% now if we should acrually do something
+% set default values
+if isempty(alpha)
+    alpha = 4;
+end
+if nargin < 2 || isempty(air_resist)
+    air_resist = 1e-3;
+end
+if nargin < 3 || isempty(mass)
+    m = 1;
+end
+if nargin < 4 || isempty(v0)
+    v0=20;
+end
+if nargin < 5 || isempty(y0)
+    y0 = 0;
+end
+options = odeset('Events', @myevents);
+
+% time 
+% value of function
+% time of event
+% value of function at event
+% index of event at event
+% ie - index of event
+%
+% note that to ode45 we give [0, v0*cos(alpha), y0, v0*sin(alpha)]
+% hwich is [x_start, x_change_func, y_start, y_change_func]
+[t,y,te,ye,ie]=ode45(@airfunc, [0;Inf], ...
+    [0, v0*cos(alpha), y0, v0*sin(alpha)], options, air_resist, mass);
+
+% we plot the 
+plot(y(:,1), y(:,3), varargin{:});
+
+% disp is for showing arrays
+disp('****************************');
+disp(['alpha=', num2str(alpha) '; air_resist= ' mu2str(air_resist)]);
+
+
+
+
+
+end
+
+
+
+
+
+
+
+
+
+
+
+

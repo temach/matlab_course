@@ -1,0 +1,3752 @@
+%
+% boundary value problem
+%
+% y'  =  f(x,y)
+% solve the diff equation on a given interval [a, b]
+% 
+% function:
+% sol = bvp4c(my_func, fun_boundary, initsol, options)
+%
+% matlab uses this to check conditions at boundary edges
+% fun_boundary: h(y(a), y(b)) = 0
+%
+% _initsol_ is a struct into which you put an approximate solution,
+% (you give it a function, and mattlab will choose the 
+% closest to the function you gave)
+%
+% function:
+% initsol = bvpinit(meshint, yint)
+%
+% meshint = array of values fo x to take (order by size) in [a,b] interval
+% so meshint[0] == a and meshint[end] == b
+% yint = value for y that is an approximate solution
+%
+
+% example solve:
+% 
+% on interval [0, 11*pi/2] 
+% y'' = -sin(x)
+% y'(11 * pi/2)  + y(11*pi/2) = -1
+% y(0) = 0
+%
+% true solution is: y = sin(x) on [0, 11*pi/2] 
+% 
+% our solution first we rewrite:
+% y1' = y2
+% y2' = -sin(x)
+% y1(0) = 0
+% y2(11*pi/2) + y1(11*pi/2) + 1 = 0
+
+function boundsproblem
+% this is a vector of values at which we solve
+meshinit = linspace(0,11*pi/2,5);
+% we set two values here for y1 and y2 which are approximate solutions
+yinit = [1, 0];
+initsol = bvpinit(meshinit, yinit);
+
+sol = bvp4c(@rside, @bound, initsol);
+
+% plot the solution
+plot(sol.x, sol.y(1,:), 'k.');
+hold on;
+% plot our approximate solution
+plot(initsol.x, initsol.y(1,:), 'r+');
+% plot the exact solution
+fplot(@sin, [0, 11*pi/2]);
+
+legend('numerical solution', 'initial approxiamtion for solution', 'exact solution');
+end
+
+% function to calculte the right hand side
+function f=rside(x,y)
+f = [y(2); -sin(x)];
+end
+
+% function to check that conditions at boundary edge are satisfied
+function f=bound(ya, yb)
+f = [ya(1); yb(2) + yb(1) + 1];
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% returns the value of y'
+function F=oscil_simple(t,y)
+F = [sin(t)];
+end% we give matlab initial conditions
+% matlab then calculates 
+function F=system_1_true_func(t)
+F = [log(t), 1/t]
+end% returns the vector P for the system;
+% P = [y; z]
+function F=oscil(t,y)
+F = [y(2); -2*y(2) - 10*y(1) + sin(t)];
+end% example of how
+function solvedm
+y0 = [1;0]
+[t_res,y_res] = ode113(@oscil, [0, 15], y0);
+
+% red is the solution
+plot(t_res,y_res(:,1),'r.-');
+hold on;
+% green is y'
+plot(t_res,y_res(:,2),'g.-');
+grid on;
+
+% returns the vector P for the system;
+% P = [y; z]
+function F=oscil(t,y)
+F = [y(2); -2*y(2) - 10*y(1) + sin(t)];
+end
+end% ode45 fourth order runge kutta
+% ode23 second order
+% [T, Y] = solver(odefunc, tapan, y0)
+% T is the x valuies, Y is the corresponding y values. (to graph this shit)
+y0 = [1;0]
+[t_res,y_res] = ode113(@oscil, [0, 15], y0);
+
+% red is the solution
+plot(t_res,y_res(:,1),'r.-');
+hold on;
+% green is y'
+plot(t_res,y_res(:,2),'g.-');
+grid on;
+
+%%
+clear;
+clc;
+clf;
+
+% T is the x valuies, Y is the corresponding y values. (to graph this shit)
+% initial condition
+y0 = [-cos(-5)]
+% y_res will have only one row
+% t_res will have one row
+[t_res,y_res] = ode113(@oscil_simple, [-5 5], y0);
+
+% red is the found numeric solution
+plot(t_res,y_res(:,1),'r.-');
+hold on;
+% green is true solution
+plot(t_res,-cos(t_res),'g.-');
+grid on;
+
+
+%%
+% note: This problem does NOT have a proper solution, because accuracy is
+% too low
+clear;
+clc;
+clf;
+
+% helper constant
+a = 0.001
+
+% initial condition
+y0 = [log(a); 1/a]
+%search in interval
+interval = [a, 100];
+
+% find solution
+% y_res has two rows. For y1 and for y2
+% t_res has one row
+[t_res,y_res] = ode113(@system_1, interval, y0);
+
+hold on;
+grid on;
+
+% red is the found numeric solution for y1
+% plot just the numeric solution to y1
+plot(t_res,y_res(:,1),'r.-');
+
+% green is true solution to y1
+% plot just the y1 solution
+plot(t_res,log(t_res),'g.-');
+
+
+
+
+%%
+% This is same problem as previous, but with increased accuracy and
+% plotting of both numeric solutions y1,y2 and their true solutions
+clear;
+clc;
+clf;
+
+% helper constant
+a = 0.001
+% initial condition
+y0 = [log(a); 1/a]
+%search in interval
+interval = [a, 100];
+
+% set the accuracy to be more precise
+options = odeset('RelTol',1e-7);
+% call like
+[t_res,y_res] = ode113(@system_1, interval, y0, options);
+
+hold on;
+grid on;
+
+% red is the found numeric solution for y1
+plot(t_res, y_res(:,1),'r.-');
+% red is the found numeric solution for y2
+plot(t_res, y_res(:,2),'y.-');
+
+% green is true solution to y1
+plot(t_res, log(t_res),'g.-');
+% green is true solution to y2
+plot(t_res, 1./t_res,'b.-');
+
+function F=system_1(t,y)
+F = [y(2); -1/(t*t)]
+end%%
+% varargout is a special variable for holding many output values
+% varargin is a special variable for holding many values
+function y = myfunc(varargin)
+% number of args input to a function (this is a special variable)
+nargin
+nargout % how many outputs the user requested
+% use curly brackets to access elements
+varargin{2} % get insige the second cell
+
+% find minimum of function using quasi-neton method
+myfunc = @(x) (sin(x))
+x0 = [1;1]
+[x,fval] = fminunc(@myfunc, x0);
+
+
+%
+% boundary value problem
+%
+% y'  =  f(x,y)
+% solve the diff equation on a given interval [a, b]
+% 
+% function:
+% sol = bvp4c(my_func, fun_boundary, initsol, options)
+%
+% matlab uses this to check conditions at boundary edges
+% fun_boundary: h(y(a), y(b)) = 0
+%
+% _initsol_ is a struct into which you put an approximate solution,
+% (you give it a function, and mattlab will choose the 
+% closest to the function you gave)
+%
+% function:
+% initsol = bvpinit(meshint, yint)
+%
+% meshint = array of values fo x to take (order by size) in [a,b] interval
+% so meshint[0] == a and meshint[end] == b
+% yint = value for y that is an approximate solution
+%
+
+% example solve:
+% 
+% on interval [0, 11*pi/2] 
+% y'' = -sin(x)
+% y'(11 * pi/2)  + y(11*pi/2) = -1
+% y(0) = 0
+%
+% true solution is: y = sin(x) on [0, 11*pi/2] 
+% 
+% our solution first we rewrite:
+% y1' = y2
+% y2' = -sin(x)
+% y1(0) = 0
+% y2(11*pi/2) + y1(11*pi/2) + 1 = 0
+
+function boundsproblem
+% this is a vector of values at which we solve
+meshinit = linspace(0,11*pi/2,5);
+% we set two values here for y1 and y2 which are approximate solutions
+yinit = [1, 0];
+initsol = bvpinit(meshinit, yinit);
+
+sol = bvp4c(@rside, @bound, initsol);
+
+% plot the solution
+plot(sol.x, sol.y(1,:), 'k.');
+hold on;
+% plot our approximate solution
+plot(initsol.x, initsol.y(1,:), 'r+');
+% plot the exact solution
+fplot(@sin, [0, 11*pi/2]);
+
+legend('numerical solution', 'initial approxiamtion for solution', 'exact solution');
+end
+
+% function to calculte the right hand side
+function f=rside(x,y)
+f = [y(2); -sin(x)];
+end
+
+% function to check that conditions at boundary edge are satisfied
+function f=bound(ya, yb)
+f = [ya(1); yb(2) + yb(1) + 1];
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% returns the value of y'
+function F=oscil_simple(t,y)
+F = [sin(t)];
+end% we give matlab initial conditions
+% matlab then calculates 
+function F=system_1_true_func(t)
+F = [log(t), 1/t]
+end% returns the vector P for the system;
+% P = [y; z]
+function F=oscil(t,y)
+F = [y(2); -2*y(2) - 10*y(1) + sin(t)];
+end% example of how
+function solvedm
+y0 = [1;0]
+[t_res,y_res] = ode113(@oscil, [0, 15], y0);
+
+% red is the solution
+plot(t_res,y_res(:,1),'r.-');
+hold on;
+% green is y'
+plot(t_res,y_res(:,2),'g.-');
+grid on;
+
+% returns the vector P for the system;
+% P = [y; z]
+function F=oscil(t,y)
+F = [y(2); -2*y(2) - 10*y(1) + sin(t)];
+end
+end% ode45 fourth order runge kutta
+% ode23 second order
+% [T, Y] = solver(odefunc, tapan, y0)
+% T is the x valuies, Y is the corresponding y values. (to graph this shit)
+y0 = [1;0]
+[t_res,y_res] = ode113(@oscil, [0, 15], y0);
+
+% red is the solution
+plot(t_res,y_res(:,1),'r.-');
+hold on;
+% green is y'
+plot(t_res,y_res(:,2),'g.-');
+grid on;
+
+%%
+clear;
+clc;
+clf;
+
+% T is the x valuies, Y is the corresponding y values. (to graph this shit)
+% initial condition
+y0 = [-cos(-5)]
+% y_res will have only one row
+% t_res will have one row
+[t_res,y_res] = ode113(@oscil_simple, [-5 5], y0);
+
+% red is the found numeric solution
+plot(t_res,y_res(:,1),'r.-');
+hold on;
+% green is true solution
+plot(t_res,-cos(t_res),'g.-');
+grid on;
+
+
+%%
+% note: This problem does NOT have a proper solution, because accuracy is
+% too low
+clear;
+clc;
+clf;
+
+% helper constant
+a = 0.001
+
+% initial condition
+y0 = [log(a); 1/a]
+%search in interval
+interval = [a, 100];
+
+% find solution
+% y_res has two rows. For y1 and for y2
+% t_res has one row
+[t_res,y_res] = ode113(@system_1, interval, y0);
+
+hold on;
+grid on;
+
+% red is the found numeric solution for y1
+% plot just the numeric solution to y1
+plot(t_res,y_res(:,1),'r.-');
+
+% green is true solution to y1
+% plot just the y1 solution
+plot(t_res,log(t_res),'g.-');
+
+
+
+
+%%
+% This is same problem as previous, but with increased accuracy and
+% plotting of both numeric solutions y1,y2 and their true solutions
+clear;
+clc;
+clf;
+
+% helper constant
+a = 0.001
+% initial condition
+y0 = [log(a); 1/a]
+%search in interval
+interval = [a, 100];
+
+% set the accuracy to be more precise
+options = odeset('RelTol',1e-7);
+% call like
+[t_res,y_res] = ode113(@system_1, interval, y0, options);
+
+hold on;
+grid on;
+
+% red is the found numeric solution for y1
+plot(t_res, y_res(:,1),'r.-');
+% red is the found numeric solution for y2
+plot(t_res, y_res(:,2),'y.-');
+
+% green is true solution to y1
+plot(t_res, log(t_res),'g.-');
+% green is true solution to y2
+plot(t_res, 1./t_res,'b.-');
+
+function F=system_1(t,y)
+F = [y(2); -1/(t*t)]
+end%%
+% varargout is a special variable for holding many output values
+% varargin is a special variable for holding many values
+function y = myfunc(varargin)
+% number of args input to a function (this is a special variable)
+nargin
+nargout % how many outputs the user requested
+% use curly brackets to access elements
+varargin{2} % get insige the second cell
+
+% find minimum of function using quasi-neton method
+myfunc = @(x) (sin(x))
+x0 = [1;1]
+[x,fval] = fminunc(@myfunc, x0);
+
+
+% function to calculate differential
+% this is matlab janyary 28
+function y=diff_central(func,x0,varargin)
+% this is the optimal step size
+h = 1e-8;
+if nargin > 2
+    % note the curly brackets
+    h = varargin{1};
+end
+
+% first formula
+y = (func(x0+h) - func(x0-h)) / (2*h); 
+
+%second formula
+% y2 = (f(x0
+end
+% main run
+
+x0 = 0:0.1:5;
+
+% true second derivative
+r = cos(x0);
+
+% take numeric derivative of sin function
+y = diff(@sin,x0);
+
+% result is a vector
+% draw both and compare
+plot(x0,y,'-b');
+% hold on;
+plot(x0,r,'-r');
+
+
+
+%%
+% plot the difference between real values and numerical differentiation
+% (this is the error), test different values for step size (h)
+clear;clc;
+x0 = 0:0.1:5;
+
+% values to take for step size when numerically differentiting
+h = [1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6, 1e-7, 1e-8, 1e-9, 1e-10, 1e-15];
+r = -cos(x0);
+
+for i=1:length(h)
+    y = diff_compare(@sin,x0,h(i));
+    
+    % calculate diff between real and numeric
+    e(i) = max(abs(y-r));
+end
+
+%loglog(x0,y,'- .b');
+loglog(h,e,'- .b');
+
+%%
+% calculate the difference between derivative with central method and 
+% derivative with left/right approximation
+clear;clc;
+
+x0 = 0:0.1:5;
+
+h = 1e-4;
+r = -cos(x0);
+% for central diff
+y = diff_compare(@sin,x0,h,0);
+% for right diff
+y1 = diff_compare(@sin,x0,h,1);
+
+% take the abs value because semilog
+semilogy(x0,abs(y-r),'- .b',x0,abs(y1-r),'- .r');
+grid on;
+
+
+%%
+% calculate second derivative
+x0 = 0:0.1:5;
+
+% take first derivative and fit a polynom
+first_der_poly = polyfit(x0,y,5)
+
+% calculate second derivative from first derivative
+der_two_y = diff_compare(@(x)(polyval(first_der_poly,x)),x0,h,1); 
+
+% calculate true value of second derivative
+true_der_two = -sin(x0);
+
+% plot bothto see the difference
+plot(x0,der_two_y,'- .b');
+hold on;
+plot(x0, true_der_two, '- .r');
+
+%%
+% test gradient
+% for functions of more than one input argument (x,y,z ....)
+clear; clc;
+
+h = 0.1
+
+[X,Y] = meshgrid(-5:h:5);
+
+% random function
+Z = sin(X).*(Y.^2);
+
+% true derivative
+dzdx = cos(X).*(Y.^2);
+dzdy = 2*sin(X).*(Y);
+
+% step use 1e-2
+[num_dzdx, num_dzdy] = gradient(Z,h);
+
+% true der x
+subplot(2,3,1);
+mesh(X,Y,dzdx);
+
+% true der y
+subplot(2,3,2);
+mesh(X,Y,dzdy);
+
+% numeric derr x
+subplot(2,3,3);
+mesh(X,Y,num_dzdx);
+
+% numeric derr y
+subplot(2,3,4);
+mesh(X,Y,num_dzdy);
+
+% draw error x
+subplot(2,3,5);
+mesh(X,Y,dzdx - num_dzdx);
+
+% draw error y
+subplot(2,3,6);
+mesh(X,Y,dzdy - num_dzdy);
+
+%%
+% calculate gradient of one variable function
+clear;clc;
+
+
+h = 0.01;
+x0 = 0:h:5;
+r = cos(x0);
+z = sin(x0);
+[dzdx] = gradient(z,h);
+
+% make new window
+subplot(1,1,1);
+plot(x0, r, '- .b', x0, dzdx, '-- .r');
+grid on;% function to calculate differential
+% this is matlab janyary 28
+function y=diff_compare(func,x0,varargin)
+% this is the optimal step size
+h = 1e-8;
+if nargin > 2
+    % note the curly brackets
+    h = varargin{1};
+end
+y = (func(x0+h) - func(x0-h)) / (2*h);
+
+if nargin > 3
+    s = varargin{2};
+    if s == 0
+        y = (func(x0+h) - func(x0-h)) / (2*h); 
+    elseif s == 1
+        y = (func(x0+h) - func(x0)) / (h); 
+    else
+        y = (func(x0) - func(x0-h)) / (h); 
+    end
+end
+
+end
+% function to calculate differential
+% this is matlab janyary 28
+function y=diff(func,x0,varargin)
+% this is the optimal step size
+h = 1e-8;
+if nargin > 2
+    % note the curly brackets
+    h = varargin{1};
+end
+
+% first formula
+y = (func(x0+h) - func(x0)) / h; 
+
+%second formula
+% y2 = (f(x0
+end
+function y=diff_second(diff,x0,varargin)
+% function to calculate differential
+% this is matlab janyary 28
+function y=diff_compare(func,x0,varargin)
+% this is the optimal step size
+h = 1e-8;
+if nargin > 2
+    % note the curly brackets
+    h = varargin{1};
+end
+y = (func(x0+h) - func(x0-h)) / (2*h);
+
+if nargin > 3
+    s = varargin{2};
+    if s == 0
+        y = (func(x0+h) - func(x0-h)) / (2*h); 
+    elseif s == 1
+        y = (func(x0+h) - func(x0)) / (h); 
+    else
+        y = (func(x0) - func(x0-h)) / (h); 
+    end
+end
+
+end
+%%
+% last time we learned "eig" function
+%
+% x = eigenvector
+% lam = eigenvalue
+% lam = максисальное собственное число
+% х = правый собственный вектор
+% А = матрица
+% << A * x = lam * x >>
+
+% у = левый собственный векторr
+% (y)^(transposed) * A = lam * (y)^(transposed)
+% << yT * A = lam * yT >>
+
+% у = правый собственный вектор для А^(transposed)
+% << AT * y = lam * y >>
+
+%%
+%
+A = [4, -1, -2; 2, 1, -2; 1, -1, 1];
+% get list of eigenvalues
+d =eig(A);
+
+% Vr = list of eigenvectors
+% Dr = eigenvalues in diagonal
+[Vr, Dr] = eig(A);
+
+% A*x - lam * x (should be) = 0
+A * Vr(:,1) - Dr(1,1) * Vr(:,1)
+
+% Get left eigenvalues
+[Vleft, Dleft] = eig(A.');
+% << yT * A = lam * yT >>
+Vleft(:,1).' * A - Dleft(1,1) * Vleft(:,1).';
+
+%%
+% eigenvals of diagonal (or upper diagonal) = diagonal
+r = [1 2 3; 0, 3, 3; 0, 0, 5]
+% will be [1, 3, 5]
+eig(r)
+
+%%
+% find linearly independent vectors
+[R, jb] = rref(Vr)
+B = Vr(:,jb)
+
+%% 
+% eigenvectors can be complex
+A2 = [0 2 4; 1 0 0 ; 0 1 0]
+% we get complex eigen vecotrs as a result
+[Vr, Dr] = eig(A2);
+% complex to real
+[V1, D1] = cdf2rdf(Vr,Dr)
+
+% will be equal to initial values in Dr
+d = eig(D1(2:3,2:3))
+
+%%
+% обобщенные собственные числа
+% << A * x = lam * B * x >>
+% where B is n-by-n
+a = [6 -4 ; -4 7]
+b = [-9 5; 5 -6]
+[V, D] = eig(A,B);
+% check that this is zero (we check just the first vector form the set)
+A * V(:,1) - D(1,1)*B*V(:,1)
+
+%%
+% форма хейзенберга
+% matrix form of hessenburg 
+% (similar to row-echelon/triangular/canonical form)
+% but one extra diagonal is filled
+A = [3 2 6; -2 0 3; 1 5 2]
+[P, H] = hess(A)
+% now: P * H * P^(transpose) = A
+% check
+norm(P*H*P.' - A)
+
+%%
+% QZ - decomposition
+A = rand(5,5)
+B = rand(5,5)
+[AA BB Q Z] = hess(A,B)
+% AA = hess matrix
+% BB = upper triangular
+% Q,Z = othagonal matrices 
+% check Q,Z orthagonal (chould give identity)
+Q * Q.'
+Z * Z.'
+% check that both are zero
+Q * A * Z - AA
+Q * B * Z - BB
+
+%%
+% schur decompose
+A = rand(5,5)
+B = rand(5,5)
+[U T] = schur(A,'real')
+% U = orthogonal matrix
+% T = upper triangular
+% check that zero
+norm(U*T*U.' - A)
+norm(U*U' - eye(5,5))
+
+%% 
+% calculate with complex
+% complex flag allows for complex values in matrix
+[U T] = schur(A, 'complex')
+% change from complex to real (add blocks)
+[U1, T1] = cdf2rdf(U,T)
+
+% calcualte with real
+[U T] = schur(A,'real')
+% change from real to complex ( remove blocks of real and put complex numbers in)
+[U2, T2] = rsf2csf(U,T)
+
+%%
+% YAQRD
+% Yet Another QR Decomposition
+A = rand(5,5)
+B = rand(5,5)
+[AA,BB,Q,Z,V,W]=qz(A,B)
+
+% polyfit to find best fit curve
+x=[10.1 10.2 10.3 10.8 10.9 11 11.1 11.4 12.2 13.3 13.8 14 14.4 15  15.6 15.8 17  18.1 19];
+y=[24   36   26   45   34   37 55   51   75   84   74   91 85    87 94   92   96  97   98];
+hold on;
+plot(x,y,'. ');
+
+a=polyfit(x,y,1);
+b=polyfit(x,y,2);
+
+t=x(1):0.1:x(end);
+y1=polyval(a,t);
+y2=polyval(b,t);
+plot(t,y1,'r -');
+plot(t,y2,'g -');
+grid on;
+
+A=zeros(2,2);
+p=zeros(2,1);
+
+A(1,1)=length(x);
+A(1,2)=sum(x,2);
+A(2,1)=sum(x,2);
+A(2,2)=sum(x.^2,2);
+p(1)=sum(y,2);
+p(2)=sum(x.*y);
+
+v=A\p;
+
+y3=t*v(2)+v(1);
+
+plot(t,y3,'k --');
+
+
+%%
+% now the model is y = c0 + c1*x^2 + c2*x^3
+% we take derivative along each c0, c1, c2
+% then we set each derivative equal to zero
+% then we get 3 equations with 3 unknows and 1 numerical
+% express c0,c1,c2 in terms of numerical (constant)
+% then write the matrix A(c0;c1;c2) = (k1;k2;k3)
+% solve: v = A\p
+% 
+%
+% 2 * (yi - c0 - c1*xi^2 - c2*xi^3) * -c0
+% 2 * (yi - c0 - c1*xi^2 - c2*xi^3) * -2*c1*xi
+% 2 * (yi - c0 - c1*xi^2 - c2*xi^3) * -3*c2*xi^2
+%
+% 2*yi*(-c0) -2*c0*(-c0) - 2*c1*(-c0)*xi^2 - 2*c2*(-c0)*xi^3)
+% 2*yi*(-2*c1*xi) - 2*c0*(-2*c1*xi) - 2*c1*(-2*c1*xi)*xi^2 - 2*c2*(-2*c1*xi)*xi^3)
+% yi*(-6*c2*xi^2) - c0*(-6*c2*xi^2) - c1*(-6*c2*xi^2)*xi^2 - c2*(-6*c2*xi^2)*xi^3
+
+x=[10.1 10.2 10.3 10.8 10.9 11 11.1 11.4 12.2 13.3 13.8 14 14.4 15  15.6 15.8 17  18.1 19];
+y=[24   36   26   45   34   37 55   51   75   84   74   91 85    87 94   92   96  97   98];
+hold on;
+plot(x,y,'. ');
+
+a = zeros(3,3)
+p = zeros(3,1)
+
+a(1,1) = length(x)
+a(1,2) = sum(x.^2);
+a(1,3) = sum(x.^3);
+
+a(2,1) = sum(x.^2)
+a(2,2) = sum(x.^4);
+a(2,3) = sum(x.^5);
+
+a(3,1) = sum(x.^3);
+a(3,2) = sum(x.^5);
+a(3,3) = sum(x.^6);
+
+p(1) = sum(y)
+p(2) = sum((x.^2).*y)
+p(3) = sum((x.^3).*y)
+
+v = a\p;
+
+t=x(1):0.1:x(end);
+y3=v(1) + v(2)*(t.^2) + v(3)*(t.^3);
+
+plot(t,y3,'k --');
+
+
+
+% y'(t) = F( f, y(t), y(d1), y(d2), ..... y(dn), y'(p1), y'(p2), .... y'(pk))
+% di = di(y,y(t)) 
+% pi = pi(t, y(t))          (y'(p1) = value at derivative)
+%
+% note: di,pi must always return time < t
+% sol = ddensd    << note the extra "n"
+% 
+% sol.X = time
+% sol.Y = solutions at each time
+% sol.yp = value of y' at each time
+% sol.solver = 'ddesd' (the name of the solving function)
+%
+% ddesd(ddefunc, delay, delay_of_derivative, history, time_spawn, options)
+
+
+% example we have a system:
+% y'(t) = 1 + y(2) - 2 * (y(t/2)^2) - y'(t - pi)
+%
+% prehistory: t <= 0
+% y(t) = cos(t)
+% 
+% t belongs to [0, pi]
+% 
+
+function example_ddesd_another
+tstart = 0
+tend = pi;
+
+tspan = [tstart, tend]
+sol = ddensd(@my_func, @my_delay, @my_der_delay, @my_hist, tspan)
+
+% let's also plot the prehistory
+t_hist = linspace(-pi,0);
+y_hist = my_hist(t_hist);
+
+% get the exact solution
+t_exact = linspace(0, pi, 10);
+% since the history function is the exact solution in this example
+y_exact = my_hist(t_exact);
+ 
+% plot our solution at a different time values
+t_other = linspace(0,pi);
+y_other = deval(sol, t_other);
+
+figure(1); hold on;
+% you have to plot them on one plot command so
+% matlab chooses the correct axis size
+plot(t_hist,y_hist,'k',t_exact, y_exact,'b',t_other,y_other,'ro');
+legend('history', 'analitic solution', 'numeric solution');
+
+grid on;
+xlabel('time t');
+ylabel('solution for y');
+end
+
+function v=my_hist(t)
+v = cos(t);
+end
+
+function der=my_der_delay(t,y)
+der = t - pi;
+end
+
+function d=my_delay(t,y)
+d = t/2;
+end
+
+% the Z parameter comes from my_delay function
+% whatever you put into d in my_delay will show up in Z_delay_solution
+% here both Z_* will be scalars
+function dydt=my_func(t,y,Z_delay_solution, Z_delay_derivative)
+dydt = 1 + y - 2 * Z_delay_solution^2 - Z_delay_derivative;
+end
+
+
+
+
+
+
+% y'(t) = F( f, y(t), y(d1), y(d2), ..... y(dn))
+% di = di(y,y(t)) 
+% note: di must always return time < t
+% when: di = y - k1   
+% then we get simplification that we solved with ode23s
+%
+% sol = ddesd
+% 
+% sol.X = time
+% sol.Y = solutions at each time
+% sol.yp = value of y' at each time
+% sol.solver = 'ddesd' (the name of the solving function)
+%
+% ddesd(ddefunc, delay, history, time_spawn, options)
+
+
+% example we have a system:
+% y1'(t) = y2'(t)
+% y2'(t) = -y2( e^(1 - y2(t)) ) * y2(t)^2 * e^(1 - y2(t))
+%
+% prehistory: t < 0.1
+% y1(t) = ln(t)
+% y2(t) = 1/t
+% 
+% t belongs to [0.1, 5]
+% d1 = e^(1 - y2(t))
+
+function example_ddesd
+tstart = 0.1
+tend = 5;
+
+tspan = [tstart, tend]
+sol = ddesd( @my_func, @my_delay, @my_hist, tspan)
+
+% get the exact solution
+lin_t_spawn = linspace(tstart,tend)
+% since the history function is the exact solution in this example
+yexact = my_hist(lin_t_spawn)
+
+figure(1); hold on;
+plot(lin_t_spawn,yexact,sol.x,sol.y,'o');
+%plot(lin_t_spawn,yexact(1),'o')
+%label('exact y part 1');
+%plot(lin_t_spawn,yexact(2),'o')
+%label('exact y part 2');
+%plot(sol.x,sol.y(1),'o')
+%label('approximate solution part 1');
+%plot(sol.x,sol.y(2),'o')
+%label('approximate solution part 2');
+
+grid on;
+xlabel('time t');
+ylable('solution for y');
+end
+
+function v=my_hist(t)
+v = [log(t); 1./t];
+end
+
+
+function d=my_delay(t,y)
+d = exp(1 - y(2));
+end
+
+% the Z parameter comes from my_delay function
+% whatever you put into d in my_delay will show up in Z
+function dydt=my_func(t,y,Z)
+dydt = [y(2); -Z(2) * y(2)^2 * exp(1 - y(2))]
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%% L-D-L decomposition
+% only for ermite matrices
+
+% matlab function to get positively defined 
+A = full(delsq(numgrid('L',10)));
+
+% M is ermite function, but undefined (positive/negavite)
+B = gallery('uniformdata', 10, 0)
+M = [eye(10), B; B', zeros(10)]
+
+% get the decomposition
+[La, Da] = ldl(A);
+
+% check answer is zero
+norm(A - La*Da*La');
+% search the matrix array for negative elements, (should be zero of them)
+nen = find(diag(Da) < 0)
+
+% now that we have the decomposition lets solve something
+% make up the target "ba" so we will have "A*x = ba"
+ba = sum(A,2)
+
+y = La \ ba;
+z = Da \ y;
+x = La' \ z;
+% or the same
+xxx = La'\(Da\(La\ba))
+
+% check the answer
+norm(x - ones(size(ba)))
+
+% function tril(matrix) returns lower triangular part of the matrix
+spy(A)
+figure(2)
+spy(La)
+figure(3)
+spy(Da)
+
+% A = matrix
+% R = chol(A)
+% to find chol(B) where B = A + x*x'
+% we can use:
+% cholupdate(R, x)
+%
+% also there is qrupdate()
+
+%
+% ilu function
+% bicg function
+%
+%
+%
+
+% A = some matrix
+% b = 
+tol = 1e-12;
+maxit = 20;
+[x0],fl0, rr0,it0,rv0] = bicg(A,b,tol,maxit);
+[L,U] = ilu(A,struct('type','ilutp','droptol',1e-6);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% using profiler (Run and Time)
+n = 20;
+e = ones(n,1);
+sn = spdiags([-e, 3*e, -e], -1:1, n, n);
+sn(1,n) = 1;
+sn(n,1) = 1
+rn = chol(sn)
+
+%%
+n = 500;
+a = rand(n,n);
+b = rand(n,n);
+c = a*b;
+
+% custom matrix multiply (just like normal a*b
+ccc = zeros(n,n)
+for i=1:n
+    for j=1:n
+        s = 0;
+        for k = 1:n
+            s = s + a(i,k) * b(k,i);
+        end
+        ccc(i,j) = s;
+    end
+end
+
+%%
+n = 100;
+a = rand(n,n);
+% calc all eigen values
+all_vals = eig(a)
+% calculate only some eigenvalues (with conditions)
+some_vals = eigs(a,1);
+
+% convert matlab symbolic function to c code
+% ccode(some_sybolic_value)
+
+            % this lesson has hunters/prey graph
+% function that is called at every step to control our calcualtion
+% such as: stop when this value is less than 100 (see MyOut fuinction)
+% also see help on using "odeplot"
+% the solution to hunter/prey diff equation is liek a spiral
+
+function solve_hunter_prey
+% y(1) is qty of prey
+% y(2) is qty of hunters
+y0 = [1000;1100];
+
+% try increasing the time to [0, 10000]
+[t, y] = ode23s(@lotVol, [0, 100], y0);
+figure(1)
+%subplot(1,2,1);
+hold on;
+legend('Hunters', 'Prey'); grid on;
+plot(y(:,1), y(:,2));
+
+option = odeset('OutputFcn', @MyOut)
+% we can also supply our own jacobian matrix (because calculating it is
+% expensive)
+% option = odeset('OutputFcn', @MyOut, 'Jacobian', @MyJac)
+[t, y] = ode23s(@lotVol, [0, 100], y0, option);
+figure(2);
+%subplot(1,2,2);
+plot(y(:,1), y(:,2));
+end
+
+
+% y(1) is qty of prey
+% y(2) is qty of hunters
+function f = lotVol(t,y)
+f = [0.8*y(1) - 0.01*y(1)*y(2); -y(2)+0.01*y(1)*y(2)];
+end
+    
+function status=MyOut(t,y,flag)
+status=(length(flag)==0)&&(y(1)<100);
+end
+    
+function J=MyJac(t,y)
+J = [0.8 - 0.01*y(2), -0.01*y(1);  0.01*y(2), -1 + 0.01*y(1)];
+end%%
+% we can already solve y = F(t,y)
+% now we learn to solve F(t,y,y') = 0 
+% becasue F(t,y,y') can not be changed into F(t,y) form
+% матрица масс
+% 
+% M(t,y) * y' = F(t,y)
+% if matrix M is constant then we can change to F(t,y) form
+% 
+% we are given a system 
+% y1'(t) = -0.04 * y1(t) + 10^4*y2(t)*y3(t)
+% y2'(t) = 0.04*y1(t) -10^4 *y(2)* - 3*1e4*(y2(t))^2
+% 0 = y1(t) + y2(t) + y3(t) - 1
+% matrix of mass is allows us to rewrite this system of equations in 
+% M(t,y) * y' = F(t,y) form
+
+function exampleMass
+
+function f=rob(t,y)
+f = zeros(3,1)
+% this is out system of equations
+f(1) = -0.04 * y(1) + 1e4*y(2)*y(3)
+f(2) = 0.04 * y(1) - 1e4*y(2)*y(3) - 3e7*y(2)^2
+f(3) = y(1) + y(2) + y(3) - 1
+end
+
+y0 = [1;0;0]
+m = diag([1, 1, 0])
+% reltol is accuracy
+options = odeset('RelTol', 1e-4, 'mass', m)
+
+% function, 
+[t,y] = ode15s(@rob, [0, 100], y0, options)
+subplot(3,1,1); plot(t,y(:,1))
+subplot(3,1,2); plot(t,y(:,2))
+subplot(3,1,3); plot(t,y(:,3))
+
+end%% matlab 12/02/2016 am
+% alpha - start angle 
+% air_resist - koefficient of air resistance
+% mass - weight of canon ball
+% v0 - initial speed of canon ball
+% y0 - starting height of canon ball
+function [t,y]=air(alpha,air_resist,mass,v0,y0,varargin)
+
+% if args is empty run multiple demonstrations
+if nargin < 1
+    shg
+    ylim([0, Inf]);
+    daspect([1,1,1])
+    hold on
+    xlabel('x');
+    ylabel('y')
+    grid on;
+    % just random vals to show stuff off
+    air(pi/4, [], [], [], [], 'b:')
+    air(pi/6, [], [], [], [], 'm:')
+    air(pi/3, [], [], [], [], 'k:')
+
+    % now add small air resistance
+    air(pi/4, 1e-2, [], [], [], 'b--')
+    air(pi/6, 1e-2, [], [], [], 'm')
+    air(pi/3, 1e-2, [], [], [], 'k')
+    
+    % the strings go in the order that lines are drawn on the graph
+    legend('\pi over 4',  ...
+        '\pi over 6', ...
+        '\pi over 3', ...
+        '\pi over 4 with ari resist', ...
+        '\pi over 6 with ari resist', ...
+        '\pi over 3 with ari resist');
+    return;
+end
+
+% now if we should acrually do something
+% set default values
+if isempty(alpha)
+    alpha = 4;
+end
+if nargin < 2 || isempty(air_resist)
+    air_resist = 1e-7;
+end
+if nargin < 3 || isempty(mass)
+    mass = 1;
+end
+if nargin < 4 || isempty(v0)
+    v0=20;
+end
+if nargin < 5 || isempty(y0)
+    y0 = 0;
+end
+options = odeset('Events', @myevents);
+
+% t, y, te, ye, ie
+% all time values at which we sampled
+% value of function at each time value
+% time value when event happened
+% value of function when event happened
+% index of event when it happened
+% note: values are only put into te,ye,ie when an event happens
+%
+% note that to ode45 we give [0, v0*cos(alpha), y0, v0*sin(alpha)]
+% hwich is [x_start, x_change_func, y_start, y_change_func]
+[t,y,te,ye,ie]=ode45(@airfunc, [0;Inf], ...
+    [0, v0*cos(alpha), y0, v0*sin(alpha)], options, air_resist, mass);
+
+% we plot the 
+plot(y(:,1), y(:,3), varargin{:});
+
+% disp is for showing arrays
+disp('****************************');
+disp(['alpha=', num2str(alpha) '; air_resist= ' num2str(air_resist)]);
+
+% we agreed that event_1 == fell on the ground
+% and event_2 == reached maximum height
+len = ye(find(ie==1),1);
+tm = te(find(ie==1));
+height = ye(find(ie==2),3);
+tmup = te(find(ie == 2));
+
+disp(['max length traveled in x axis = ' num2str(len)])
+disp(['full time in air = ' num2str(tm)])
+disp(['time travelling upwards = ' num2str(tmup)])
+disp(['maximum height = ' num2str(height)])
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+% function to calculate derivate for the canon
+% ball at certain point in time
+% t = time (the x value)
+% y = [x_val, dx_val, y_val_dy_val]
+function dydt=airfunc(t, y, air_resist, mass)
+g = 9.8
+% this is just some random math function for canon ball trajectory
+dydt = [y(2); -air_resist * sqrt(y(2)^2 + y(4)^2)*y(2)/mass; ...
+    y(4); (-air_resist * sqrt(y(2)^2 + y(4)^2) * y(4)/mass) - g];
+end%%
+% if ode has an "s" at the end the it is for rigid equations
+
+[t,y] = ode15s(@myrigid, [0,1000], [2, 0]);
+plot(t,y(:,1), '- .g');
+hold on;
+
+% this takes a hell load of  time
+[t,y] = ode45(@myrigid, [0,1000], [2,0]);
+plot(t,y(:,1), '- .b');% value = tells us event has occured 
+% here value will be array of two values, because we work with only two
+% events
+% isterminal = should we break on this event
+% direciton = which direction are we approaching the value from
+% direction can be (-1, 0, +1) == (decreasing, steady, increasing)
+function [value, isterminal, direction] = myevents(t,y,air_resist,mass)
+
+% event_1 = fell on ground
+% value = y(3) = 0
+% isterminal = 1 (true, break on this event)
+% direction = -1 (we are falling)
+
+value = [y(3), y(4)]
+isterminal = [1, 0]
+direc
+
+% event_2 = fell on ground
+% value = y(3) = 0
+% isterminal = 1 (true, break on this event)
+% direction = -1 (we are falling)
+
+
+end%%
+% if ode has an "s" at
+[t,y] = ode15s(@rigid, [0,1000], [2, 0]);
+plot(t,y(:,1));
+hold on;
+[t,y] = ode45(@myrigid, [0,1000], [2,0]);
+plot(t,y(:,1));% value = tells us event has occured 
+% here value will be array of two values, because we work with only two
+% events
+% isterminal = should we break on this event
+% direciton = which direction are we approaching the value from
+% direction can be (-1, 0, +1) == (decreasing, steady, increasing)
+function [value, isterminal, direction] = myevents(t,y,air_resist,mass)
+
+% event_1 = fell on ground
+% value = y(3) = 0  (happens when y(3) == 0)
+% isterminal = 1 (true, break on this event)
+% direction = -1 (we are falling)
+
+% event_2 = fell on ground
+% value = y(4) (happens when y(4) = 0, so derivative of speed on y is zero)
+% isterminal = 0 (false, do't break)
+% direction = 0 (we don't care about this)
+
+value = [y(3), y(4)]
+isterminal = [1, 0]
+direction = [-1, 0];
+end% random function with rigid equation
+function dy = myrigid(t,y)
+dy = zeros(2,1);
+dy(1) = y(2);
+dy(2) = 1000 * (1 - y(1)^2) * y(2) - y(1);
+end%% matlab 12/02/2016 am
+% alpha - start angle 
+% air_resist - koefficient of air resistance
+% mass - weight of canon ball
+% v0 - initial speed of canon ball
+% y0 - starting height of canon ball
+function [t,y]=air(alpha,air_resist,mass,v0,y0,varargin)
+
+% if args is empty run multiple demonstrations
+if nargin < 1
+    shg
+    ylim([0, Inf]);
+    daspect([1,1,1])
+    hold on
+    xlabel('x');
+    ylabel('y')
+    grid on;
+    % just random vals to show stuff off
+    air(pi/4, [], [], [], [], 'b:')
+    air(pi/6, [], [], [], [], 'm:')
+    air(pi/3, [], [], [], [], 'k:')
+
+    % now add small air resistance
+    air(pi/4, 1e-3, [], [], [], 'b')
+    air(pi/6, 1e-3, [], [], [], 'm')
+    air(pi/3, 1e-3, [], [], [], 'k')
+    
+    % the strings go in the order that lines are drawn on the graph
+    legend('\pi over 4',  ...
+        '\pi over 6', ...
+        '\pi over 3', ...
+        '\pi over 4 with ari resist', ...
+        '\pi over 6 with ari resist', ...
+        '\pi over 3 with ari resist');
+    return;
+end
+
+% now if we should acrually do something
+% set default values
+if isempty(alpha)
+    alpha = 4;
+end
+if nargin < 2 || isempty(air_resist)
+    air_resist = 1e-3;
+end
+if nargin < 3 || isempty(mass)
+    m = 1;
+end
+if nargin < 4 || isempty(v0)
+    v0=20;
+end
+if nargin < 5 || isempty(y0)
+    y0 = 0;
+end
+options = odeset('Events', @myevents);
+
+% time 
+% value of function
+% time of event
+% value of function at event
+% index of event at event
+% ie - index of event
+%
+% note that to ode45 we give [0, v0*cos(alpha), y0, v0*sin(alpha)]
+% hwich is [x_start, x_change_func, y_start, y_change_func]
+[t,y,te,ye,ie]=ode45(@airfunc, [0;Inf], ...
+    [0, v0*cos(alpha), y0, v0*sin(alpha)], options, air_resist, mass);
+
+% we plot the 
+plot(y(:,1), y(:,3), varargin{:});
+
+% disp is for showing arrays
+disp('****************************');
+disp(['alpha=', num2str(alpha) '; air_resist= ' mu2str(air_resist)]);
+
+
+
+
+
+end
+
+
+
+
+
+
+
+
+
+
+
+
+% will be called on each iteration of optimisation cycles
+function stop=myfunc_output(x,vals,state)
+% state = what type of iteration (initialization/search/end)
+% vals = structure with function values
+switch state
+    case 'init'
+        clf;    % clear figure
+        myfunc_draw();
+    case 'iter'
+        [ineq, eq] = myfunc_con(x);
+        
+    case 'done'
+        % do nothing
+        shg; % show window on top of others
+end
+
+endx0 =[0, 0];
+
+% this is just to enable monitoring of function progress
+options = optimset('OutputFcn', @myfunc_output);
+
+[xopt, fval, flag] = fmincon(@myfunc, x0, [], [], [], [], [], [], @myfunc_con, options);
+
+function f=myfunc(x)
+f = x(1)^2 - 2*x(1)*x(2) + 4*(x(2)^3);
+end
+
+function myfunc_draw()
+step=0.5;
+x = -5:step:5;
+y = -5:step:5;
+[X, Y] = meshgrid(x,y);
+F = x.^2 - 2.*y.*x + 4.*(y.^3);
+surf(X,Y,F);
+view(18,55);
+end%%
+% find min of a function but takes extra restrictions
+help fmincon
+
+
+
+
+% first is that they the inequality is ok
+% second is that the equality is ok
+% this function will be passed to fmincon
+% it must look exactly liek this one
+% here x is a vector of values
+function [ineq_ok, eq_ok]=myfunc_con(x)
+% make the condition of inequality
+ineq_ok = [];
+% makle the condition of inequality
+eq_ok = x(1).^2 + x(2).^2 - 2;
+end
+
+
+
+% will be called on each iteration of optimisation cycles
+function stop=myfunc_output(x,vals,state)
+% 
+% state = what type of iteration (initialization/search/end)
+% vals = structure with function values
+switch state
+    case 'init'
+        clf;    % clear figure
+        shg;    % show window on top of others
+        myfunc_draw();
+    case 'done'
+        clf;     
+end
+sto
+end% modification of prey/hunters example
+% 
+% now lets say
+% y1'(t) = P * y1(t) - p * y1(t)*y2(t) 
+% y2'(t) = -R * y2(t) + r * y1(t - k)*y2(t - k)
+% with P = 0.3, R = 1, k = 0.1, p=r=0.001
+% conditions: 
+% y1(0) = 1000
+% y2(0) = 1100 
+% t belong [0, 50]
+%%
+%
+% y' = derivative
+% solve y' = F(t,y)
+% M(t,y) * y' = F(t,y)
+% F(t,y,y') = 0
+% specifically for this type:
+% [T,Y] = ode15i(@func, [t0, tmax], Y0, Y_derivative_0, options)
+%
+% we must also solve F(t0, y0, y_derivative_at_y0) = 0
+% this has many solutions so we must fix the initial values
+% to get the right solutions
+% [y0, y_der_y0] = decic(@somefunc, t0, y0init, y0flag, y_der_init,
+% y_der_flag)
+%
+%
+%
+% example: y = y' * t + e^(y')
+% given: y(0) = e
+% t belongs [0, 5]
+%
+
+
+
+
+
+
+
+
+
+
+%solving unodrdinary differential equations
+% they are called __delay differential equations__ (DDE)
+% y'(t) = F( t, y(t), y(t - k1), y(t - k2), ..... y(t - kn))
+% and t belongs to [t0, tmax]
+% k1...kn - constants and > 0
+% and k1<k2<...<kn
+% so y(t-k1) is lagging behind y(t)
+% and y(t - k2) is lagging behind y(t-k1) and y(t)
+% steps to success:
+% 1. function to calculate the right hand side 
+%  F(t, y(t), y(t - k1), y(t - k2), ..... y(t - kn))
+% 2. function to go back in time (prehistory)
+%  y(t) for when t < t0 (i.e. how to calculate y(t - k1) when t = t0)
+% 3. give options
+% 4. show the shit on screen
+%
+%
+%
+% example: 
+% we have t = [0, 4]
+% we have k = [0.5, 1.5, 2]
+% y1p = (pi/3)*(y2(t) + y1(t - 1.5) + y2(t-2))
+% y2p = (-pi/3) * (y1(t) + y1(t - 2) + y2(t-0.5))
+%
+% prehistory: s(t) = [sin(pi * t) ; cos(pi*t) ] 
+% will calculate this matrix on each step
+%     [ y1(t - k1), y1(t - k2), y1(t - k3) ]
+% z = |                                    |
+%     [ y2(t - k1), y2(t - k2), y2(t - k3) ]
+%
+% sol is some matlab struct
+% sol = dde23(@func, k, @prehistory, [t0, tmax])
+% sol.x = time  values [t0, tmax]
+% sol.y = solution at time sol.x
+% sol.yp = y' at time sol.x
+%
+% true solution to example: y1 = sin(pi * t); y2 = cos(pi * t);
+
+
+
+
+
+
+
+
+% example: 
+% we have t = [0, 4]
+% we have k = [0.5, 1.5, 2]
+% y1p = (pi/3)*(y2(t) + y1(t - 1.5) + y2(t-2))
+% y2p = (-pi/3) * (y1(t) + y1(t - 2) + y2(t-0.5))
+%
+% prehistory: s(t) = [sin(pi * t) ; cos(pi*t) ] 
+% will calculate this matrix on each step
+%     [ y1(t - k1), y1(t - k2), y1(t - k3) ]
+% z = |                                    |
+%     [ y2(t - k1), y2(t - k2), y2(t - k3) ]
+%
+% sol is some matlab struct
+% sol = dde23(@func, k, @prehistory, [t0, tmax])
+% sol.x = time  values [t0, tmax]
+% sol.y = solution at time sol.x
+% sol.yp = y' at time sol.x
+%
+% true solution to example: y1 = sin(pi * t); y2 = cos(pi * t);
+function ddetest
+sol = dde23(@ddefunc, [0.5, 1.5, 2], @ddehist, [0, 4]);
+
+% plot y1
+figure(1);
+subplot(2,1,1);
+hold on;
+plot(sol.x, sol.y(1,:),'o')
+% true solution
+y1 = inline('sin(pi*t)');
+fplot(y1, [0, 4], 'r');
+title('first function solution');
+legend('approx solution', 'true/exact oslution');
+
+% now we have calculated the solution at certain points sol.x
+% what if we wanna calcualte solution at specific time?
+% say we want to calculate at step size 0.1
+yd = deval(sol, 0:0.1:4); 
+plot(0:0.1:4,yd(1,:),'b');
+
+% back to the solution we still need to plot y2
+subplot(2,1,2);
+hold on;
+plot(sol.x, sol.y(2,:),'o')
+% true solution
+y2 = inline('cos(pi*t)');
+fplot(y2, [0, 4], 'r');
+title('Second function solution');
+legend('approx solution', 'true/exact oslution');
+
+end
+
+% t = current time
+% y = vector of (y1, y2) (the solution that solver has currently found)
+% z is that big matrix
+function F=ddefunc(t,y,z)
+% y1p = (pi/3)*(y2(t) + y1(t - 1.5) + y2(t-2))
+% y2p = (-pi/3) * (y1(t) + y1(t - 2) + y2(t-0.5))
+F = [(pi/3)*(y(2) + z(1,2) + z(2,3)); ...
+    (-pi/3)*(y(1) + z(1,3) + z(2,1))];
+end
+
+% this is the vlaue of the solver for the 
+% times that we don't care about it (for times less than t0)
+% takes only the time
+function F=ddehist(t)
+F = [sin(pi*t); cos(pi*t)];
+end% matlab 26 february 2016
+% example: y = y' * t + e^(y')
+% given: y(0) = e
+% t belongs [0, 5]
+% so we want the example equation to hold for all given value of t
+function klero
+
+t0 = 0;
+% since y(0) = e
+Y0init = exp(1);
+% because this is fixed by the problem, so don't change this
+Y0flag = 1
+
+% Yp = y - ptoizvodnaja, choose this randomly, since
+% this is just initial value to search from
+Yp0init = 0;
+% set to zero because we are looking for this
+Yp0flag = 0;
+
+% now we found all initial conditions
+[Y0, Yp0] = decic(@klerofunc, t0, Y0init, Y0flag, Yp0init, Yp0flag);
+% Yp0 will be the found derivative that suit the equation
+
+% now we can solve, must use special solver because we have derivatives
+[T,Y] = ode15i(@klerofunc, [t0, 5], Y0, Yp0);
+
+plot(T,Y,'o')
+hold on
+% we know the exact solution
+exsol=inline('x + exp(1)');
+fplot(exsol, [t0, 5]);
+
+end
+
+
+% before was klerofunc(t,y)
+% t = current time
+% y = current y value
+% yp - y proizvodnaja (current y derivative)
+function F=klerofunc(t,y,yp)
+% rewrite the function as F(t,y,y') = 0
+F = y - yp*t - exp(1) ^ (yp);
+end
+
+
+
+
+
+
+
+
+
+
+
+
+clear;clc;
+n=3000;
+% first with sparce matrices
+AN=sprand(n,n,10/n);%razrazh (величина, % заполнения)
+BN=sprand(n,n,10/n);
+tic; 
+CN=AN*BN; 
+toc
+%измеряет время выполнения
+disp([nnz(AN) nnz(BN)]);
+% now with full matrices
+A=full(AN);
+B=full(BN);
+tic; 
+C=A*B; 
+toc
+%%
+clear;clc;
+A=[10 0 0; 0 0 20; 30 40 0];
+S=sparse(A);
+% will get a matrix with mostly one's
+B=cos(S)
+% if the elements in matrix were 0 then spfun will ignore them.
+% this functions will have mostly zeros
+BN=spfun(@cos,S)
+BN=spfun(@sin,S)
+%%
+n=150;
+AN=sprand(n,n,0.01); 
+%для разложения Холецкого м-ца симметричная и положительно определенная
+% so fix the random matrix to be suitable
+% make it симметричная
+AN=AN+AN'; 
+% make it положительно определенная
+AN=AN+100*speye(n);
+
+subplot(3,3,1);
+spy(AN); title('AN');
+RN=chol(AN);
+subplot(3,2,2); spy(RN); title('RN: AN=RN^T*RN');
+%Перестановка строк-столбцов, чтобы м-ца была более разряженной:
+perm=symrcm(AN);
+subplot(3,2,3);spy(AN(perm,perm)); title('AN после перестановок');
+RN2=chol(AN(perm,perm));
+subplot(3,2,4); spy(RN2); title('RN: после перестановок symrcm');
+
+perm=symamd(AN);
+subplot(3,2,5);spy(AN(perm,perm)); title('AN после перестановок');
+RN2=chol(AN(perm,perm));
+subplot(3,2,6); spy(RN2); title('RN: после перестановок symamd');
+%%
+clear;clc;
+n=4000;
+AN=sprand(n,n,0.0003);
+AN=AN+AN'; AN=AN+2*n*speye(n);
+x=(1:n)'; b=AN*x;
+
+% if we solve this head on
+tic
+R=chol(AN);
+x=R\(R'\b);
+fprintf('Время решения chol %f \n', toc);
+%ТЕперь то же самое для м-цы перестновок
+% check if this wii be faster
+tic
+perm=symrcm(AN);
+R1=chol(AN(perm,perm));
+% remember to apply the permutation to "b" as to AN
+x=R1\(R1'\b(perm));
+% also we must apply the permutation to x the same as to AN
+x(perm)=x;
+fprintf('Время решения chol + symrcm%f \n', toc);
+
+
+%%
+n = 1000;
+AN = sprand(n,n,0.005);
+% make it positively defined
+AN = AN + 2*n*speye(n);
+% generate random vector of logarithmically spaced values
+% form 10^(-7), to 10^(-2) put 30 values
+Tresh = logspace(-7, -2, 30)
+Nonz = [];
+for tr=Tresh
+    [L, U, P, Q] = lu(AN, tr);
+    Nonz = [Nonz, nnz(L+U)];
+end
+figure(2)
+grid on;
+semilogx(Tresh, Nonz);
+
+%%
+clear;clc;
+n=100; I = ones(n,1); D = spdiags(-I,0,n,n);
+T=spdiags([I, -2*I, I], [-1, 0, 1], n, n)
+% kron = builds up a block matrix (every element is expanded to a matrix)
+AN = kron(D,T) + kron(T,D)
+
+x_ex = (1:n*n)'; 
+b = AN * x_ex;
+
+% froptolerance option for ichol function
+DROPTOL = logspace(-6, 0, 20);
+ITER = []
+
+for dr=DROPTOL
+    options=struct('type','ict','droptol',dr);
+    R = ichol(AN, options)
+    [x, flag, relres,qty_iter] = pcg(AN, b, 1e-10, 1000, R', R);
+    ITER=[ITER, qty_iter];
+end
+
+figure(3);
+loglog(DROPTOL,ITER);
+    %
+% We want to solve this equation, but not find an exact solution
+% we want to solve including the constraints
+%
+% for Ax = b
+% we want to minimise the error in X
+% 
+% min[ ... ] means find the minimum x for which this is true
+% here (b - Ax)' is (b - Ax) transposed
+% x = min[ (b - Ax)' * (b - Ax) ]
+% x = lscov(A,b)
+%
+% w is array of weights
+% x = lscov(A,b,w)  = min[ (b - Ax)' * diag(w) * (b - Ax) ]
+% 
+% x = lscov(A,b,V) = min[ (b - Ax)' * V^(-1) * (b - Ax) ]
+
+%%
+% solve the problem of least squares
+
+x1  =[0.2, 0.5, 0.6, 0.8, 1.0, 1.1]';
+x2 = [0.1, 0.3, 0.4, 0.9, 1.1, 1.4]
+A = [ones(size(x)), x1, x2];
+b = [0.17, 0.26, 0.28, 0.23, 0.27, 0.34]'
+z = A\b;
+% mse tells us how far from the minimum we are at
+[z2, stdx, mse] = lscov(A,b);
+disp([z1, z2]);
+disp(mse);
+
+%%
+% set different w\eights tell that the last arg is unimportant
+w = [1, 1, 1, 1, 1, 0.1]';
+z = A\b;
+[z2, stdx, mse] = lscov(A,b);
+disp([z1, z2]);
+disp(mse);
+
+%%
+% for Ax = b
+% we want to minimise the error in X
+% minimise this: (|| Ax - b ||)^2 (make it as close to zero as possible)
+% but this time we add some constraints for example x >=0
+% 
+% we will use lsqnonneg(A,b,options)
+
+
+%%
+%
+% calculate pseudo inverse matrix
+% A*B*A = A
+% B*A*B = B
+% A*B = эрмитова (симметричная но по комплексном сопряжении тоже
+% симметрична)
+% B*A = эрмитова (симметричная но по комплексном сопряжении тоже
+% симметрична)
+% lsconv we find the most suitable x for Ax=b chich does not have solutions
+% with x = pinv(A) * b  we find the most suitable A^(-1)
+% now given Ax = b
+% use pinv
+x = pinv(A) * b
+% use standard solution
+y = A\b;
+% the x will be a closer solution than y (althouth there is no exact Ax=b solution) 
+
+
+
+
+
+
+
+
+n=22
+A = delsq(numgrid('S', n));
+spy(A)
+B = ones(length(A),1)
+
+% choletsky incomplete (so we still have a sparse matrix)
+R=ichol(A);
+
+figure(5);
+[x, flag, relres, iter,resvec] = pcg(A, b, 1e-6, 400);
+semilogy(0:iter, resvec,'.b'); grid on;
+
+[x, flag, relres, iter, resvec]= pcg(A,B);
+figure(2);
+plot(resvec, '.r');
+
+% plot in logarithmic
+figure(3);
+semilogy(0:iter, resvec,'.b');
+grid on;
+flag
+
+% how many iteration did you take
+iter
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% richardson 
+% jacobi
+% zeidel
+% sor
+% min_res
+
+
+
+
+
+
+%function [x,flag,relres,iter,resvc,t]=zeidel(A,b,tol,maxit,x0)
+% методы спуска (finding of minimum)
+% это градиентный спуск
+% есть еще координатный спуск
+function [x,flag,relres,iter,resvec,t]=min_res(A,b,tol,maxit,x0)
+x=x0;
+flag=0;
+r = b-A*x;
+nr = norm(r,Inf);
+nb = norm(b, Inf);
+resvec(1) = nr;
+
+% N = length(b);
+
+for iter=1:maxit
+    alfa = dot(A*r, r) / dot(A*r, A*r);
+    t(iter) = alfa;
+    x = x + alfa*r;
+    r = b- A*x;
+    nr = norm(r,Inf);
+    resvec(iter+1) = nr;
+    relres=nr/nb;       % note the slash
+    if relres <= tol
+        flag = 1;
+        break;
+    end
+end
+end
+
+
+
+
+
+
+
+
+
+%function [x,flag,relres,iter,resvc,t]=zeidel(A,b,tol,maxit,x0)
+% gradient (convergence?)
+% метод сорпряженного градиентов
+function [x,flag,relres,iter,alfa,beta]=con_grad(A,b,tol,maxit,x0)
+x=x0;
+flag=0;
+r = b-A*x;
+nr = norm(r,Inf);
+nb = norm(b, Inf);
+resvec(1) = nr;
+% N = length(b);
+
+% get direction 
+p=r;
+
+for iter=1:maxit
+    B = dot(r,r);
+    alfa_k = B / dot(A*p, p);
+    
+    % save to history, to view on graph
+    alfa(iter) = alfa_k;
+    x = x + alfa_k*p;
+    
+    % пересчитаем невязку
+    r = r - alfa_k * A * p;
+   
+    nr = norm(r,Inf);
+    resvec(iter+1) = nr;
+    relres=nr/nb;       % note the slash
+    
+    % check the precision
+    if relres <= tol
+        % precision is good enouth
+        flag = 1;
+        break;
+    end
+    
+    % else must recalculate direciton
+    beta_k = dot(r,r) / B;
+    p = r + beta_k*p;
+    
+    % save so we can view history later
+    beta(iter) = beta_k;
+end
+end
+
+
+% function to calculate differential
+% this is matlab janyary 28
+function y=diff_central(func,x0,varargin)
+% this is the optimal step size
+h = 1e-8;
+if nargin > 2
+    % note the curly brackets
+    h = varargin{1};
+end
+
+% first formula
+y = (func(x0+h) - func(x0-h)) / (2*h); 
+
+%second formula
+% y2 = (f(x0
+end
+% main run
+
+x0 = 0:0.1:5;
+
+% true second derivative
+r = cos(x0);
+
+% take numeric derivative of sin function
+y = diff(@sin,x0);
+
+% result is a vector
+% draw both and compare
+plot(x0,y,'-b');
+% hold on;
+plot(x0,r,'-r');
+
+
+
+%%
+% plot the difference between real values and numerical differentiation
+% (this is the error), test different values for step size (h)
+clear;clc;
+x0 = 0:0.1:5;
+
+% values to take for step size when numerically differentiting
+h = [1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6, 1e-7, 1e-8, 1e-9, 1e-10, 1e-15];
+r = -cos(x0);
+
+for i=1:length(h)
+    y = diff_compare(@sin,x0,h(i));
+    
+    % calculate diff between real and numeric
+    e(i) = max(abs(y-r));
+end
+
+%loglog(x0,y,'- .b');
+loglog(h,e,'- .b');
+
+%%
+% calculate the difference between derivative with central method and 
+% derivative with left/right approximation
+clear;clc;
+
+x0 = 0:0.1:5;
+
+h = 1e-4;
+r = -cos(x0);
+% for central diff
+y = diff_compare(@sin,x0,h,0);
+% for right diff
+y1 = diff_compare(@sin,x0,h,1);
+
+% take the abs value because semilog
+semilogy(x0,abs(y-r),'- .b',x0,abs(y1-r),'- .r');
+grid on;
+
+
+%%
+% calculate second derivative
+x0 = 0:0.1:5;
+
+% take first derivative and fit a polynom
+first_der_poly = polyfit(x0,y,5)
+
+% calculate second derivative from first derivative
+der_two_y = diff_compare(@(x)(polyval(first_der_poly,x)),x0,h,1); 
+
+% calculate true value of second derivative
+true_der_two = -sin(x0);
+
+% plot bothto see the difference
+plot(x0,der_two_y,'- .b');
+hold on;
+plot(x0, true_der_two, '- .r');
+
+%%
+% test gradient
+% for functions of more than one input argument (x,y,z ....)
+clear; clc;
+
+h = 0.1
+
+[X,Y] = meshgrid(-5:h:5);
+
+% random function
+Z = sin(X).*(Y.^2);
+
+% true derivative
+dzdx = cos(X).*(Y.^2);
+dzdy = 2*sin(X).*(Y);
+
+% step use 1e-2
+[num_dzdx, num_dzdy] = gradient(Z,h);
+
+% true der x
+subplot(2,3,1);
+mesh(X,Y,dzdx);
+
+% true der y
+subplot(2,3,2);
+mesh(X,Y,dzdy);
+
+% numeric derr x
+subplot(2,3,3);
+mesh(X,Y,num_dzdx);
+
+% numeric derr y
+subplot(2,3,4);
+mesh(X,Y,num_dzdy);
+
+% draw error x
+subplot(2,3,5);
+mesh(X,Y,dzdx - num_dzdx);
+
+% draw error y
+subplot(2,3,6);
+mesh(X,Y,dzdy - num_dzdy);
+
+%%
+% calculate gradient of one variable function
+clear;clc;
+
+
+h = 0.01;
+x0 = 0:h:5;
+r = cos(x0);
+z = sin(x0);
+[dzdx] = gradient(z,h);
+
+% make new window
+subplot(1,1,1);
+plot(x0, r, '- .b', x0, dzdx, '-- .r');
+grid on;% function to calculate differential
+% this is matlab janyary 28
+function y=diff_compare(func,x0,varargin)
+% this is the optimal step size
+h = 1e-8;
+if nargin > 2
+    % note the curly brackets
+    h = varargin{1};
+end
+y = (func(x0+h) - func(x0-h)) / (2*h);
+
+if nargin > 3
+    s = varargin{2};
+    if s == 0
+        y = (func(x0+h) - func(x0-h)) / (2*h); 
+    elseif s == 1
+        y = (func(x0+h) - func(x0)) / (h); 
+    else
+        y = (func(x0) - func(x0-h)) / (h); 
+    end
+end
+
+end
+% function to calculate differential
+% this is matlab janyary 28
+function y=diff(func,x0,varargin)
+% this is the optimal step size
+h = 1e-8;
+if nargin > 2
+    % note the curly brackets
+    h = varargin{1};
+end
+
+% first formula
+y = (func(x0+h) - func(x0)) / h; 
+
+%second formula
+% y2 = (f(x0
+end
+function y=diff_second(diff,x0,varargin)
+% function to calculate differential
+% this is matlab janyary 28
+function y=diff_compare(func,x0,varargin)
+% this is the optimal step size
+h = 1e-8;
+if nargin > 2
+    % note the curly brackets
+    h = varargin{1};
+end
+y = (func(x0+h) - func(x0-h)) / (2*h);
+
+if nargin > 3
+    s = varargin{2};
+    if s == 0
+        y = (func(x0+h) - func(x0-h)) / (2*h); 
+    elseif s == 1
+        y = (func(x0+h) - func(x0)) / (h); 
+    else
+        y = (func(x0) - func(x0-h)) / (h); 
+    end
+end
+
+end
+%%
+% last time we learned "eig" function
+%
+% x = eigenvector
+% lam = eigenvalue
+% lam = максисальное собственное число
+% х = правый собственный вектор
+% А = матрица
+% << A * x = lam * x >>
+
+% у = левый собственный векторr
+% (y)^(transposed) * A = lam * (y)^(transposed)
+% << yT * A = lam * yT >>
+
+% у = правый собственный вектор для А^(transposed)
+% << AT * y = lam * y >>
+
+%%
+%
+A = [4, -1, -2; 2, 1, -2; 1, -1, 1];
+% get list of eigenvalues
+d =eig(A);
+
+% Vr = list of eigenvectors
+% Dr = eigenvalues in diagonal
+[Vr, Dr] = eig(A);
+
+% A*x - lam * x (should be) = 0
+A * Vr(:,1) - Dr(1,1) * Vr(:,1)
+
+% Get left eigenvalues
+[Vleft, Dleft] = eig(A.');
+% << yT * A = lam * yT >>
+Vleft(:,1).' * A - Dleft(1,1) * Vleft(:,1).';
+
+%%
+% eigenvals of diagonal (or upper diagonal) = diagonal
+r = [1 2 3; 0, 3, 3; 0, 0, 5]
+% will be [1, 3, 5]
+eig(r)
+
+%%
+% find linearly independent vectors
+[R, jb] = rref(Vr)
+B = Vr(:,jb)
+
+%% 
+% eigenvectors can be complex
+A2 = [0 2 4; 1 0 0 ; 0 1 0]
+% we get complex eigen vecotrs as a result
+[Vr, Dr] = eig(A2);
+% complex to real
+[V1, D1] = cdf2rdf(Vr,Dr)
+
+% will be equal to initial values in Dr
+d = eig(D1(2:3,2:3))
+
+%%
+% обобщенные собственные числа
+% << A * x = lam * B * x >>
+% where B is n-by-n
+a = [6 -4 ; -4 7]
+b = [-9 5; 5 -6]
+[V, D] = eig(A,B);
+% check that this is zero (we check just the first vector form the set)
+A * V(:,1) - D(1,1)*B*V(:,1)
+
+%%
+% форма хейзенберга
+% matrix form of hessenburg 
+% (similar to row-echelon/triangular/canonical form)
+% but one extra diagonal is filled
+A = [3 2 6; -2 0 3; 1 5 2]
+[P, H] = hess(A)
+% now: P * H * P^(transpose) = A
+% check
+norm(P*H*P.' - A)
+
+%%
+% QZ - decomposition
+A = rand(5,5)
+B = rand(5,5)
+[AA BB Q Z] = hess(A,B)
+% AA = hess matrix
+% BB = upper triangular
+% Q,Z = othagonal matrices 
+% check Q,Z orthagonal (chould give identity)
+Q * Q.'
+Z * Z.'
+% check that both are zero
+Q * A * Z - AA
+Q * B * Z - BB
+
+%%
+% schur decompose
+A = rand(5,5)
+B = rand(5,5)
+[U T] = schur(A,'real')
+% U = orthogonal matrix
+% T = upper triangular
+% check that zero
+norm(U*T*U.' - A)
+norm(U*U' - eye(5,5))
+
+%% 
+% calculate with complex
+% complex flag allows for complex values in matrix
+[U T] = schur(A, 'complex')
+% change from complex to real (add blocks)
+[U1, T1] = cdf2rdf(U,T)
+
+% calcualte with real
+[U T] = schur(A,'real')
+% change from real to complex ( remove blocks of real and put complex numbers in)
+[U2, T2] = rsf2csf(U,T)
+
+%%
+% YAQRD
+% Yet Another QR Decomposition
+A = rand(5,5)
+B = rand(5,5)
+[AA,BB,Q,Z,V,W]=qz(A,B)
+
+% polyfit to find best fit curve
+x=[10.1 10.2 10.3 10.8 10.9 11 11.1 11.4 12.2 13.3 13.8 14 14.4 15  15.6 15.8 17  18.1 19];
+y=[24   36   26   45   34   37 55   51   75   84   74   91 85    87 94   92   96  97   98];
+hold on;
+plot(x,y,'. ');
+
+a=polyfit(x,y,1);
+b=polyfit(x,y,2);
+
+t=x(1):0.1:x(end);
+y1=polyval(a,t);
+y2=polyval(b,t);
+plot(t,y1,'r -');
+plot(t,y2,'g -');
+grid on;
+
+A=zeros(2,2);
+p=zeros(2,1);
+
+A(1,1)=length(x);
+A(1,2)=sum(x,2);
+A(2,1)=sum(x,2);
+A(2,2)=sum(x.^2,2);
+p(1)=sum(y,2);
+p(2)=sum(x.*y);
+
+v=A\p;
+
+y3=t*v(2)+v(1);
+
+plot(t,y3,'k --');
+
+
+%%
+% now the model is y = c0 + c1*x^2 + c2*x^3
+% we take derivative along each c0, c1, c2
+% then we set each derivative equal to zero
+% then we get 3 equations with 3 unknows and 1 numerical
+% express c0,c1,c2 in terms of numerical (constant)
+% then write the matrix A(c0;c1;c2) = (k1;k2;k3)
+% solve: v = A\p
+% 
+%
+% 2 * (yi - c0 - c1*xi^2 - c2*xi^3) * -c0
+% 2 * (yi - c0 - c1*xi^2 - c2*xi^3) * -2*c1*xi
+% 2 * (yi - c0 - c1*xi^2 - c2*xi^3) * -3*c2*xi^2
+%
+% 2*yi*(-c0) -2*c0*(-c0) - 2*c1*(-c0)*xi^2 - 2*c2*(-c0)*xi^3)
+% 2*yi*(-2*c1*xi) - 2*c0*(-2*c1*xi) - 2*c1*(-2*c1*xi)*xi^2 - 2*c2*(-2*c1*xi)*xi^3)
+% yi*(-6*c2*xi^2) - c0*(-6*c2*xi^2) - c1*(-6*c2*xi^2)*xi^2 - c2*(-6*c2*xi^2)*xi^3
+
+x=[10.1 10.2 10.3 10.8 10.9 11 11.1 11.4 12.2 13.3 13.8 14 14.4 15  15.6 15.8 17  18.1 19];
+y=[24   36   26   45   34   37 55   51   75   84   74   91 85    87 94   92   96  97   98];
+hold on;
+plot(x,y,'. ');
+
+a = zeros(3,3)
+p = zeros(3,1)
+
+a(1,1) = length(x)
+a(1,2) = sum(x.^2);
+a(1,3) = sum(x.^3);
+
+a(2,1) = sum(x.^2)
+a(2,2) = sum(x.^4);
+a(2,3) = sum(x.^5);
+
+a(3,1) = sum(x.^3);
+a(3,2) = sum(x.^5);
+a(3,3) = sum(x.^6);
+
+p(1) = sum(y)
+p(2) = sum((x.^2).*y)
+p(3) = sum((x.^3).*y)
+
+v = a\p;
+
+t=x(1):0.1:x(end);
+y3=v(1) + v(2)*(t.^2) + v(3)*(t.^3);
+
+plot(t,y3,'k --');
+
+
+
+% y'(t) = F( f, y(t), y(d1), y(d2), ..... y(dn), y'(p1), y'(p2), .... y'(pk))
+% di = di(y,y(t)) 
+% pi = pi(t, y(t))          (y'(p1) = value at derivative)
+%
+% note: di,pi must always return time < t
+% sol = ddensd    << note the extra "n"
+% 
+% sol.X = time
+% sol.Y = solutions at each time
+% sol.yp = value of y' at each time
+% sol.solver = 'ddesd' (the name of the solving function)
+%
+% ddesd(ddefunc, delay, delay_of_derivative, history, time_spawn, options)
+
+
+% example we have a system:
+% y'(t) = 1 + y(2) - 2 * (y(t/2)^2) - y'(t - pi)
+%
+% prehistory: t <= 0
+% y(t) = cos(t)
+% 
+% t belongs to [0, pi]
+% 
+
+function example_ddesd_another
+tstart = 0
+tend = pi;
+
+tspan = [tstart, tend]
+sol = ddensd(@my_func, @my_delay, @my_der_delay, @my_hist, tspan)
+
+% let's also plot the prehistory
+t_hist = linspace(-pi,0);
+y_hist = my_hist(t_hist);
+
+% get the exact solution
+t_exact = linspace(0, pi, 10);
+% since the history function is the exact solution in this example
+y_exact = my_hist(t_exact);
+ 
+% plot our solution at a different time values
+t_other = linspace(0,pi);
+y_other = deval(sol, t_other);
+
+figure(1); hold on;
+% you have to plot them on one plot command so
+% matlab chooses the correct axis size
+plot(t_hist,y_hist,'k',t_exact, y_exact,'b',t_other,y_other,'ro');
+legend('history', 'analitic solution', 'numeric solution');
+
+grid on;
+xlabel('time t');
+ylabel('solution for y');
+end
+
+function v=my_hist(t)
+v = cos(t);
+end
+
+function der=my_der_delay(t,y)
+der = t - pi;
+end
+
+function d=my_delay(t,y)
+d = t/2;
+end
+
+% the Z parameter comes from my_delay function
+% whatever you put into d in my_delay will show up in Z_delay_solution
+% here both Z_* will be scalars
+function dydt=my_func(t,y,Z_delay_solution, Z_delay_derivative)
+dydt = 1 + y - 2 * Z_delay_solution^2 - Z_delay_derivative;
+end
+
+
+
+
+
+
+% y'(t) = F( f, y(t), y(d1), y(d2), ..... y(dn))
+% di = di(y,y(t)) 
+% note: di must always return time < t
+% when: di = y - k1   
+% then we get simplification that we solved with ode23s
+%
+% sol = ddesd
+% 
+% sol.X = time
+% sol.Y = solutions at each time
+% sol.yp = value of y' at each time
+% sol.solver = 'ddesd' (the name of the solving function)
+%
+% ddesd(ddefunc, delay, history, time_spawn, options)
+
+
+% example we have a system:
+% y1'(t) = y2'(t)
+% y2'(t) = -y2( e^(1 - y2(t)) ) * y2(t)^2 * e^(1 - y2(t))
+%
+% prehistory: t < 0.1
+% y1(t) = ln(t)
+% y2(t) = 1/t
+% 
+% t belongs to [0.1, 5]
+% d1 = e^(1 - y2(t))
+
+function example_ddesd
+tstart = 0.1
+tend = 5;
+
+tspan = [tstart, tend]
+sol = ddesd( @my_func, @my_delay, @my_hist, tspan)
+
+% get the exact solution
+lin_t_spawn = linspace(tstart,tend)
+% since the history function is the exact solution in this example
+yexact = my_hist(lin_t_spawn)
+
+figure(1); hold on;
+plot(lin_t_spawn,yexact,sol.x,sol.y,'o');
+%plot(lin_t_spawn,yexact(1),'o')
+%label('exact y part 1');
+%plot(lin_t_spawn,yexact(2),'o')
+%label('exact y part 2');
+%plot(sol.x,sol.y(1),'o')
+%label('approximate solution part 1');
+%plot(sol.x,sol.y(2),'o')
+%label('approximate solution part 2');
+
+grid on;
+xlabel('time t');
+ylable('solution for y');
+end
+
+function v=my_hist(t)
+v = [log(t); 1./t];
+end
+
+
+function d=my_delay(t,y)
+d = exp(1 - y(2));
+end
+
+% the Z parameter comes from my_delay function
+% whatever you put into d in my_delay will show up in Z
+function dydt=my_func(t,y,Z)
+dydt = [y(2); -Z(2) * y(2)^2 * exp(1 - y(2))]
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%% L-D-L decomposition
+% only for ermite matrices
+
+% matlab function to get positively defined 
+A = full(delsq(numgrid('L',10)));
+
+% M is ermite function, but undefined (positive/negavite)
+B = gallery('uniformdata', 10, 0)
+M = [eye(10), B; B', zeros(10)]
+
+% get the decomposition
+[La, Da] = ldl(A);
+
+% check answer is zero
+norm(A - La*Da*La');
+% search the matrix array for negative elements, (should be zero of them)
+nen = find(diag(Da) < 0)
+
+% now that we have the decomposition lets solve something
+% make up the target "ba" so we will have "A*x = ba"
+ba = sum(A,2)
+
+y = La \ ba;
+z = Da \ y;
+x = La' \ z;
+% or the same
+xxx = La'\(Da\(La\ba))
+
+% check the answer
+norm(x - ones(size(ba)))
+
+% function tril(matrix) returns lower triangular part of the matrix
+spy(A)
+figure(2)
+spy(La)
+figure(3)
+spy(Da)
+
+% A = matrix
+% R = chol(A)
+% to find chol(B) where B = A + x*x'
+% we can use:
+% cholupdate(R, x)
+%
+% also there is qrupdate()
+
+%
+% ilu function
+% bicg function
+%
+%
+%
+
+% A = some matrix
+% b = 
+tol = 1e-12;
+maxit = 20;
+[x0],fl0, rr0,it0,rv0] = bicg(A,b,tol,maxit);
+[L,U] = ilu(A,struct('type','ilutp','droptol',1e-6);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% using profiler (Run and Time)
+n = 20;
+e = ones(n,1);
+sn = spdiags([-e, 3*e, -e], -1:1, n, n);
+sn(1,n) = 1;
+sn(n,1) = 1
+rn = chol(sn)
+
+%%
+n = 500;
+a = rand(n,n);
+b = rand(n,n);
+c = a*b;
+
+% custom matrix multiply (just like normal a*b
+ccc = zeros(n,n)
+for i=1:n
+    for j=1:n
+        s = 0;
+        for k = 1:n
+            s = s + a(i,k) * b(k,i);
+        end
+        ccc(i,j) = s;
+    end
+end
+
+%%
+n = 100;
+a = rand(n,n);
+% calc all eigen values
+all_vals = eig(a)
+% calculate only some eigenvalues (with conditions)
+some_vals = eigs(a,1);
+
+% convert matlab symbolic function to c code
+% ccode(some_sybolic_value)
+
+            % this lesson has hunters/prey graph
+% function that is called at every step to control our calcualtion
+% such as: stop when this value is less than 100 (see MyOut fuinction)
+% also see help on using "odeplot"
+% the solution to hunter/prey diff equation is liek a spiral
+
+function solve_hunter_prey
+% y(1) is qty of prey
+% y(2) is qty of hunters
+y0 = [1000;1100];
+
+% try increasing the time to [0, 10000]
+[t, y] = ode23s(@lotVol, [0, 100], y0);
+figure(1)
+%subplot(1,2,1);
+hold on;
+legend('Hunters', 'Prey'); grid on;
+plot(y(:,1), y(:,2));
+
+option = odeset('OutputFcn', @MyOut)
+% we can also supply our own jacobian matrix (because calculating it is
+% expensive)
+% option = odeset('OutputFcn', @MyOut, 'Jacobian', @MyJac)
+[t, y] = ode23s(@lotVol, [0, 100], y0, option);
+figure(2);
+%subplot(1,2,2);
+plot(y(:,1), y(:,2));
+end
+
+
+% y(1) is qty of prey
+% y(2) is qty of hunters
+function f = lotVol(t,y)
+f = [0.8*y(1) - 0.01*y(1)*y(2); -y(2)+0.01*y(1)*y(2)];
+end
+    
+function status=MyOut(t,y,flag)
+status=(length(flag)==0)&&(y(1)<100);
+end
+    
+function J=MyJac(t,y)
+J = [0.8 - 0.01*y(2), -0.01*y(1);  0.01*y(2), -1 + 0.01*y(1)];
+end%%
+% we can already solve y = F(t,y)
+% now we learn to solve F(t,y,y') = 0 
+% becasue F(t,y,y') can not be changed into F(t,y) form
+% матрица масс
+% 
+% M(t,y) * y' = F(t,y)
+% if matrix M is constant then we can change to F(t,y) form
+% 
+% we are given a system 
+% y1'(t) = -0.04 * y1(t) + 10^4*y2(t)*y3(t)
+% y2'(t) = 0.04*y1(t) -10^4 *y(2)* - 3*1e4*(y2(t))^2
+% 0 = y1(t) + y2(t) + y3(t) - 1
+% matrix of mass is allows us to rewrite this system of equations in 
+% M(t,y) * y' = F(t,y) form
+
+function exampleMass
+
+function f=rob(t,y)
+f = zeros(3,1)
+% this is out system of equations
+f(1) = -0.04 * y(1) + 1e4*y(2)*y(3)
+f(2) = 0.04 * y(1) - 1e4*y(2)*y(3) - 3e7*y(2)^2
+f(3) = y(1) + y(2) + y(3) - 1
+end
+
+y0 = [1;0;0]
+m = diag([1, 1, 0])
+% reltol is accuracy
+options = odeset('RelTol', 1e-4, 'mass', m)
+
+% function, 
+[t,y] = ode15s(@rob, [0, 100], y0, options)
+subplot(3,1,1); plot(t,y(:,1))
+subplot(3,1,2); plot(t,y(:,2))
+subplot(3,1,3); plot(t,y(:,3))
+
+end%% matlab 12/02/2016 am
+% alpha - start angle 
+% air_resist - koefficient of air resistance
+% mass - weight of canon ball
+% v0 - initial speed of canon ball
+% y0 - starting height of canon ball
+function [t,y]=air(alpha,air_resist,mass,v0,y0,varargin)
+
+% if args is empty run multiple demonstrations
+if nargin < 1
+    shg
+    ylim([0, Inf]);
+    daspect([1,1,1])
+    hold on
+    xlabel('x');
+    ylabel('y')
+    grid on;
+    % just random vals to show stuff off
+    air(pi/4, [], [], [], [], 'b:')
+    air(pi/6, [], [], [], [], 'm:')
+    air(pi/3, [], [], [], [], 'k:')
+
+    % now add small air resistance
+    air(pi/4, 1e-2, [], [], [], 'b--')
+    air(pi/6, 1e-2, [], [], [], 'm')
+    air(pi/3, 1e-2, [], [], [], 'k')
+    
+    % the strings go in the order that lines are drawn on the graph
+    legend('\pi over 4',  ...
+        '\pi over 6', ...
+        '\pi over 3', ...
+        '\pi over 4 with ari resist', ...
+        '\pi over 6 with ari resist', ...
+        '\pi over 3 with ari resist');
+    return;
+end
+
+% now if we should acrually do something
+% set default values
+if isempty(alpha)
+    alpha = 4;
+end
+if nargin < 2 || isempty(air_resist)
+    air_resist = 1e-7;
+end
+if nargin < 3 || isempty(mass)
+    mass = 1;
+end
+if nargin < 4 || isempty(v0)
+    v0=20;
+end
+if nargin < 5 || isempty(y0)
+    y0 = 0;
+end
+options = odeset('Events', @myevents);
+
+% t, y, te, ye, ie
+% all time values at which we sampled
+% value of function at each time value
+% time value when event happened
+% value of function when event happened
+% index of event when it happened
+% note: values are only put into te,ye,ie when an event happens
+%
+% note that to ode45 we give [0, v0*cos(alpha), y0, v0*sin(alpha)]
+% hwich is [x_start, x_change_func, y_start, y_change_func]
+[t,y,te,ye,ie]=ode45(@airfunc, [0;Inf], ...
+    [0, v0*cos(alpha), y0, v0*sin(alpha)], options, air_resist, mass);
+
+% we plot the 
+plot(y(:,1), y(:,3), varargin{:});
+
+% disp is for showing arrays
+disp('****************************');
+disp(['alpha=', num2str(alpha) '; air_resist= ' num2str(air_resist)]);
+
+% we agreed that event_1 == fell on the ground
+% and event_2 == reached maximum height
+len = ye(find(ie==1),1);
+tm = te(find(ie==1));
+height = ye(find(ie==2),3);
+tmup = te(find(ie == 2));
+
+disp(['max length traveled in x axis = ' num2str(len)])
+disp(['full time in air = ' num2str(tm)])
+disp(['time travelling upwards = ' num2str(tmup)])
+disp(['maximum height = ' num2str(height)])
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+% function to calculate derivate for the canon
+% ball at certain point in time
+% t = time (the x value)
+% y = [x_val, dx_val, y_val_dy_val]
+function dydt=airfunc(t, y, air_resist, mass)
+g = 9.8
+% this is just some random math function for canon ball trajectory
+dydt = [y(2); -air_resist * sqrt(y(2)^2 + y(4)^2)*y(2)/mass; ...
+    y(4); (-air_resist * sqrt(y(2)^2 + y(4)^2) * y(4)/mass) - g];
+end%%
+% if ode has an "s" at the end the it is for rigid equations
+
+[t,y] = ode15s(@myrigid, [0,1000], [2, 0]);
+plot(t,y(:,1), '- .g');
+hold on;
+
+% this takes a hell load of  time
+[t,y] = ode45(@myrigid, [0,1000], [2,0]);
+plot(t,y(:,1), '- .b');% value = tells us event has occured 
+% here value will be array of two values, because we work with only two
+% events
+% isterminal = should we break on this event
+% direciton = which direction are we approaching the value from
+% direction can be (-1, 0, +1) == (decreasing, steady, increasing)
+function [value, isterminal, direction] = myevents(t,y,air_resist,mass)
+
+% event_1 = fell on ground
+% value = y(3) = 0
+% isterminal = 1 (true, break on this event)
+% direction = -1 (we are falling)
+
+value = [y(3), y(4)]
+isterminal = [1, 0]
+direc
+
+% event_2 = fell on ground
+% value = y(3) = 0
+% isterminal = 1 (true, break on this event)
+% direction = -1 (we are falling)
+
+
+end%%
+% if ode has an "s" at
+[t,y] = ode15s(@rigid, [0,1000], [2, 0]);
+plot(t,y(:,1));
+hold on;
+[t,y] = ode45(@myrigid, [0,1000], [2,0]);
+plot(t,y(:,1));% value = tells us event has occured 
+% here value will be array of two values, because we work with only two
+% events
+% isterminal = should we break on this event
+% direciton = which direction are we approaching the value from
+% direction can be (-1, 0, +1) == (decreasing, steady, increasing)
+function [value, isterminal, direction] = myevents(t,y,air_resist,mass)
+
+% event_1 = fell on ground
+% value = y(3) = 0  (happens when y(3) == 0)
+% isterminal = 1 (true, break on this event)
+% direction = -1 (we are falling)
+
+% event_2 = fell on ground
+% value = y(4) (happens when y(4) = 0, so derivative of speed on y is zero)
+% isterminal = 0 (false, do't break)
+% direction = 0 (we don't care about this)
+
+value = [y(3), y(4)]
+isterminal = [1, 0]
+direction = [-1, 0];
+end% random function with rigid equation
+function dy = myrigid(t,y)
+dy = zeros(2,1);
+dy(1) = y(2);
+dy(2) = 1000 * (1 - y(1)^2) * y(2) - y(1);
+end%% matlab 12/02/2016 am
+% alpha - start angle 
+% air_resist - koefficient of air resistance
+% mass - weight of canon ball
+% v0 - initial speed of canon ball
+% y0 - starting height of canon ball
+function [t,y]=air(alpha,air_resist,mass,v0,y0,varargin)
+
+% if args is empty run multiple demonstrations
+if nargin < 1
+    shg
+    ylim([0, Inf]);
+    daspect([1,1,1])
+    hold on
+    xlabel('x');
+    ylabel('y')
+    grid on;
+    % just random vals to show stuff off
+    air(pi/4, [], [], [], [], 'b:')
+    air(pi/6, [], [], [], [], 'm:')
+    air(pi/3, [], [], [], [], 'k:')
+
+    % now add small air resistance
+    air(pi/4, 1e-3, [], [], [], 'b')
+    air(pi/6, 1e-3, [], [], [], 'm')
+    air(pi/3, 1e-3, [], [], [], 'k')
+    
+    % the strings go in the order that lines are drawn on the graph
+    legend('\pi over 4',  ...
+        '\pi over 6', ...
+        '\pi over 3', ...
+        '\pi over 4 with ari resist', ...
+        '\pi over 6 with ari resist', ...
+        '\pi over 3 with ari resist');
+    return;
+end
+
+% now if we should acrually do something
+% set default values
+if isempty(alpha)
+    alpha = 4;
+end
+if nargin < 2 || isempty(air_resist)
+    air_resist = 1e-3;
+end
+if nargin < 3 || isempty(mass)
+    m = 1;
+end
+if nargin < 4 || isempty(v0)
+    v0=20;
+end
+if nargin < 5 || isempty(y0)
+    y0 = 0;
+end
+options = odeset('Events', @myevents);
+
+% time 
+% value of function
+% time of event
+% value of function at event
+% index of event at event
+% ie - index of event
+%
+% note that to ode45 we give [0, v0*cos(alpha), y0, v0*sin(alpha)]
+% hwich is [x_start, x_change_func, y_start, y_change_func]
+[t,y,te,ye,ie]=ode45(@airfunc, [0;Inf], ...
+    [0, v0*cos(alpha), y0, v0*sin(alpha)], options, air_resist, mass);
+
+% we plot the 
+plot(y(:,1), y(:,3), varargin{:});
+
+% disp is for showing arrays
+disp('****************************');
+disp(['alpha=', num2str(alpha) '; air_resist= ' mu2str(air_resist)]);
+
+
+
+
+
+end
+
+
+
+
+
+
+
+
+
+
+
+
+% will be called on each iteration of optimisation cycles
+function stop=myfunc_output(x,vals,state)
+% state = what type of iteration (initialization/search/end)
+% vals = structure with function values
+switch state
+    case 'init'
+        clf;    % clear figure
+        myfunc_draw();
+    case 'iter'
+        [ineq, eq] = myfunc_con(x);
+        
+    case 'done'
+        % do nothing
+        shg; % show window on top of others
+end
+
+endx0 =[0, 0];
+
+% this is just to enable monitoring of function progress
+options = optimset('OutputFcn', @myfunc_output);
+
+[xopt, fval, flag] = fmincon(@myfunc, x0, [], [], [], [], [], [], @myfunc_con, options);
+
+function f=myfunc(x)
+f = x(1)^2 - 2*x(1)*x(2) + 4*(x(2)^3);
+end
+
+function myfunc_draw()
+step=0.5;
+x = -5:step:5;
+y = -5:step:5;
+[X, Y] = meshgrid(x,y);
+F = x.^2 - 2.*y.*x + 4.*(y.^3);
+surf(X,Y,F);
+view(18,55);
+end%%
+% find min of a function but takes extra restrictions
+help fmincon
+
+
+
+
+% first is that they the inequality is ok
+% second is that the equality is ok
+% this function will be passed to fmincon
+% it must look exactly liek this one
+% here x is a vector of values
+function [ineq_ok, eq_ok]=myfunc_con(x)
+% make the condition of inequality
+ineq_ok = [];
+% makle the condition of inequality
+eq_ok = x(1).^2 + x(2).^2 - 2;
+end
+
+
+
+% will be called on each iteration of optimisation cycles
+function stop=myfunc_output(x,vals,state)
+% 
+% state = what type of iteration (initialization/search/end)
+% vals = structure with function values
+switch state
+    case 'init'
+        clf;    % clear figure
+        shg;    % show window on top of others
+        myfunc_draw();
+    case 'done'
+        clf;     
+end
+sto
+end% modification of prey/hunters example
+% 
+% now lets say
+% y1'(t) = P * y1(t) - p * y1(t)*y2(t) 
+% y2'(t) = -R * y2(t) + r * y1(t - k)*y2(t - k)
+% with P = 0.3, R = 1, k = 0.1, p=r=0.001
+% conditions: 
+% y1(0) = 1000
+% y2(0) = 1100 
+% t belong [0, 50]
+%%
+%
+% y' = derivative
+% solve y' = F(t,y)
+% M(t,y) * y' = F(t,y)
+% F(t,y,y') = 0
+% specifically for this type:
+% [T,Y] = ode15i(@func, [t0, tmax], Y0, Y_derivative_0, options)
+%
+% we must also solve F(t0, y0, y_derivative_at_y0) = 0
+% this has many solutions so we must fix the initial values
+% to get the right solutions
+% [y0, y_der_y0] = decic(@somefunc, t0, y0init, y0flag, y_der_init,
+% y_der_flag)
+%
+%
+%
+% example: y = y' * t + e^(y')
+% given: y(0) = e
+% t belongs [0, 5]
+%
+
+
+
+
+
+
+
+
+
+
+%solving unodrdinary differential equations
+% they are called __delay differential equations__ (DDE)
+% y'(t) = F( t, y(t), y(t - k1), y(t - k2), ..... y(t - kn))
+% and t belongs to [t0, tmax]
+% k1...kn - constants and > 0
+% and k1<k2<...<kn
+% so y(t-k1) is lagging behind y(t)
+% and y(t - k2) is lagging behind y(t-k1) and y(t)
+% steps to success:
+% 1. function to calculate the right hand side 
+%  F(t, y(t), y(t - k1), y(t - k2), ..... y(t - kn))
+% 2. function to go back in time (prehistory)
+%  y(t) for when t < t0 (i.e. how to calculate y(t - k1) when t = t0)
+% 3. give options
+% 4. show the shit on screen
+%
+%
+%
+% example: 
+% we have t = [0, 4]
+% we have k = [0.5, 1.5, 2]
+% y1p = (pi/3)*(y2(t) + y1(t - 1.5) + y2(t-2))
+% y2p = (-pi/3) * (y1(t) + y1(t - 2) + y2(t-0.5))
+%
+% prehistory: s(t) = [sin(pi * t) ; cos(pi*t) ] 
+% will calculate this matrix on each step
+%     [ y1(t - k1), y1(t - k2), y1(t - k3) ]
+% z = |                                    |
+%     [ y2(t - k1), y2(t - k2), y2(t - k3) ]
+%
+% sol is some matlab struct
+% sol = dde23(@func, k, @prehistory, [t0, tmax])
+% sol.x = time  values [t0, tmax]
+% sol.y = solution at time sol.x
+% sol.yp = y' at time sol.x
+%
+% true solution to example: y1 = sin(pi * t); y2 = cos(pi * t);
+
+
+
+
+
+
+
+
+% example: 
+% we have t = [0, 4]
+% we have k = [0.5, 1.5, 2]
+% y1p = (pi/3)*(y2(t) + y1(t - 1.5) + y2(t-2))
+% y2p = (-pi/3) * (y1(t) + y1(t - 2) + y2(t-0.5))
+%
+% prehistory: s(t) = [sin(pi * t) ; cos(pi*t) ] 
+% will calculate this matrix on each step
+%     [ y1(t - k1), y1(t - k2), y1(t - k3) ]
+% z = |                                    |
+%     [ y2(t - k1), y2(t - k2), y2(t - k3) ]
+%
+% sol is some matlab struct
+% sol = dde23(@func, k, @prehistory, [t0, tmax])
+% sol.x = time  values [t0, tmax]
+% sol.y = solution at time sol.x
+% sol.yp = y' at time sol.x
+%
+% true solution to example: y1 = sin(pi * t); y2 = cos(pi * t);
+function ddetest
+sol = dde23(@ddefunc, [0.5, 1.5, 2], @ddehist, [0, 4]);
+
+% plot y1
+figure(1);
+subplot(2,1,1);
+hold on;
+plot(sol.x, sol.y(1,:),'o')
+% true solution
+y1 = inline('sin(pi*t)');
+fplot(y1, [0, 4], 'r');
+title('first function solution');
+legend('approx solution', 'true/exact oslution');
+
+% now we have calculated the solution at certain points sol.x
+% what if we wanna calcualte solution at specific time?
+% say we want to calculate at step size 0.1
+yd = deval(sol, 0:0.1:4); 
+plot(0:0.1:4,yd(1,:),'b');
+
+% back to the solution we still need to plot y2
+subplot(2,1,2);
+hold on;
+plot(sol.x, sol.y(2,:),'o')
+% true solution
+y2 = inline('cos(pi*t)');
+fplot(y2, [0, 4], 'r');
+title('Second function solution');
+legend('approx solution', 'true/exact oslution');
+
+end
+
+% t = current time
+% y = vector of (y1, y2) (the solution that solver has currently found)
+% z is that big matrix
+function F=ddefunc(t,y,z)
+% y1p = (pi/3)*(y2(t) + y1(t - 1.5) + y2(t-2))
+% y2p = (-pi/3) * (y1(t) + y1(t - 2) + y2(t-0.5))
+F = [(pi/3)*(y(2) + z(1,2) + z(2,3)); ...
+    (-pi/3)*(y(1) + z(1,3) + z(2,1))];
+end
+
+% this is the vlaue of the solver for the 
+% times that we don't care about it (for times less than t0)
+% takes only the time
+function F=ddehist(t)
+F = [sin(pi*t); cos(pi*t)];
+end% matlab 26 february 2016
+% example: y = y' * t + e^(y')
+% given: y(0) = e
+% t belongs [0, 5]
+% so we want the example equation to hold for all given value of t
+function klero
+
+t0 = 0;
+% since y(0) = e
+Y0init = exp(1);
+% because this is fixed by the problem, so don't change this
+Y0flag = 1
+
+% Yp = y - ptoizvodnaja, choose this randomly, since
+% this is just initial value to search from
+Yp0init = 0;
+% set to zero because we are looking for this
+Yp0flag = 0;
+
+% now we found all initial conditions
+[Y0, Yp0] = decic(@klerofunc, t0, Y0init, Y0flag, Yp0init, Yp0flag);
+% Yp0 will be the found derivative that suit the equation
+
+% now we can solve, must use special solver because we have derivatives
+[T,Y] = ode15i(@klerofunc, [t0, 5], Y0, Yp0);
+
+plot(T,Y,'o')
+hold on
+% we know the exact solution
+exsol=inline('x + exp(1)');
+fplot(exsol, [t0, 5]);
+
+end
+
+
+% before was klerofunc(t,y)
+% t = current time
+% y = current y value
+% yp - y proizvodnaja (current y derivative)
+function F=klerofunc(t,y,yp)
+% rewrite the function as F(t,y,y') = 0
+F = y - yp*t - exp(1) ^ (yp);
+end
+
+
+
+
+
+
+
+
+
+
+
+
+clear;clc;
+n=3000;
+% first with sparce matrices
+AN=sprand(n,n,10/n);%razrazh (величина, % заполнения)
+BN=sprand(n,n,10/n);
+tic; 
+CN=AN*BN; 
+toc
+%измеряет время выполнения
+disp([nnz(AN) nnz(BN)]);
+% now with full matrices
+A=full(AN);
+B=full(BN);
+tic; 
+C=A*B; 
+toc
+%%
+clear;clc;
+A=[10 0 0; 0 0 20; 30 40 0];
+S=sparse(A);
+% will get a matrix with mostly one's
+B=cos(S)
+% if the elements in matrix were 0 then spfun will ignore them.
+% this functions will have mostly zeros
+BN=spfun(@cos,S)
+BN=spfun(@sin,S)
+%%
+n=150;
+AN=sprand(n,n,0.01); 
+%для разложения Холецкого м-ца симметричная и положительно определенная
+% so fix the random matrix to be suitable
+% make it симметричная
+AN=AN+AN'; 
+% make it положительно определенная
+AN=AN+100*speye(n);
+
+subplot(3,3,1);
+spy(AN); title('AN');
+RN=chol(AN);
+subplot(3,2,2); spy(RN); title('RN: AN=RN^T*RN');
+%Перестановка строк-столбцов, чтобы м-ца была более разряженной:
+perm=symrcm(AN);
+subplot(3,2,3);spy(AN(perm,perm)); title('AN после перестановок');
+RN2=chol(AN(perm,perm));
+subplot(3,2,4); spy(RN2); title('RN: после перестановок symrcm');
+
+perm=symamd(AN);
+subplot(3,2,5);spy(AN(perm,perm)); title('AN после перестановок');
+RN2=chol(AN(perm,perm));
+subplot(3,2,6); spy(RN2); title('RN: после перестановок symamd');
+%%
+clear;clc;
+n=4000;
+AN=sprand(n,n,0.0003);
+AN=AN+AN'; AN=AN+2*n*speye(n);
+x=(1:n)'; b=AN*x;
+
+% if we solve this head on
+tic
+R=chol(AN);
+x=R\(R'\b);
+fprintf('Время решения chol %f \n', toc);
+%ТЕперь то же самое для м-цы перестновок
+% check if this wii be faster
+tic
+perm=symrcm(AN);
+R1=chol(AN(perm,perm));
+% remember to apply the permutation to "b" as to AN
+x=R1\(R1'\b(perm));
+% also we must apply the permutation to x the same as to AN
+x(perm)=x;
+fprintf('Время решения chol + symrcm%f \n', toc);
+
+
+%%
+n = 1000;
+AN = sprand(n,n,0.005);
+% make it positively defined
+AN = AN + 2*n*speye(n);
+% generate random vector of logarithmically spaced values
+% form 10^(-7), to 10^(-2) put 30 values
+Tresh = logspace(-7, -2, 30)
+Nonz = [];
+for tr=Tresh
+    [L, U, P, Q] = lu(AN, tr);
+    Nonz = [Nonz, nnz(L+U)];
+end
+figure(2)
+grid on;
+semilogx(Tresh, Nonz);
+
+%%
+clear;clc;
+n=100; I = ones(n,1); D = spdiags(-I,0,n,n);
+T=spdiags([I, -2*I, I], [-1, 0, 1], n, n)
+% kron = builds up a block matrix (every element is expanded to a matrix)
+AN = kron(D,T) + kron(T,D)
+
+x_ex = (1:n*n)'; 
+b = AN * x_ex;
+
+% froptolerance option for ichol function
+DROPTOL = logspace(-6, 0, 20);
+ITER = []
+
+for dr=DROPTOL
+    options=struct('type','ict','droptol',dr);
+    R = ichol(AN, options)
+    [x, flag, relres,qty_iter] = pcg(AN, b, 1e-10, 1000, R', R);
+    ITER=[ITER, qty_iter];
+end
+
+figure(3);
+loglog(DROPTOL,ITER);
+    %
+% We want to solve this equation, but not find an exact solution
+% we want to solve including the constraints
+%
+% for Ax = b
+% we want to minimise the error in X
+% 
+% min[ ... ] means find the minimum x for which this is true
+% here (b - Ax)' is (b - Ax) transposed
+% x = min[ (b - Ax)' * (b - Ax) ]
+% x = lscov(A,b)
+%
+% w is array of weights
+% x = lscov(A,b,w)  = min[ (b - Ax)' * diag(w) * (b - Ax) ]
+% 
+% x = lscov(A,b,V) = min[ (b - Ax)' * V^(-1) * (b - Ax) ]
+
+%%
+% solve the problem of least squares
+
+x1  =[0.2, 0.5, 0.6, 0.8, 1.0, 1.1]';
+x2 = [0.1, 0.3, 0.4, 0.9, 1.1, 1.4]
+A = [ones(size(x)), x1, x2];
+b = [0.17, 0.26, 0.28, 0.23, 0.27, 0.34]'
+z = A\b;
+% mse tells us how far from the minimum we are at
+[z2, stdx, mse] = lscov(A,b);
+disp([z1, z2]);
+disp(mse);
+
+%%
+% set different w\eights tell that the last arg is unimportant
+w = [1, 1, 1, 1, 1, 0.1]';
+z = A\b;
+[z2, stdx, mse] = lscov(A,b);
+disp([z1, z2]);
+disp(mse);
+
+%%
+% for Ax = b
+% we want to minimise the error in X
+% minimise this: (|| Ax - b ||)^2 (make it as close to zero as possible)
+% but this time we add some constraints for example x >=0
+% 
+% we will use lsqnonneg(A,b,options)
+
+
+%%
+%
+% calculate pseudo inverse matrix
+% A*B*A = A
+% B*A*B = B
+% A*B = эрмитова (симметричная но по комплексном сопряжении тоже
+% симметрична)
+% B*A = эрмитова (симметричная но по комплексном сопряжении тоже
+% симметрична)
+% lsconv we find the most suitable x for Ax=b chich does not have solutions
+% with x = pinv(A) * b  we find the most suitable A^(-1)
+% now given Ax = b
+% use pinv
+x = pinv(A) * b
+% use standard solution
+y = A\b;
+% the x will be a closer solution than y (althouth there is no exact Ax=b solution) 
+
+
+
+
+
+
+
+
+n=22
+A = delsq(numgrid('S', n));
+spy(A)
+B = ones(length(A),1)
+
+% choletsky incomplete (so we still have a sparse matrix)
+R=ichol(A);
+
+figure(5);
+[x, flag, relres, iter,resvec] = pcg(A, b, 1e-6, 400);
+semilogy(0:iter, resvec,'.b'); grid on;
+
+[x, flag, relres, iter, resvec]= pcg(A,B);
+figure(2);
+plot(resvec, '.r');
+
+% plot in logarithmic
+figure(3);
+semilogy(0:iter, resvec,'.b');
+grid on;
+flag
+
+% how many iteration did you take
+iter
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% richardson 
+% jacobi
+% zeidel
+% sor
+% min_res
+
+
+
+
+
+
+%function [x,flag,relres,iter,resvc,t]=zeidel(A,b,tol,maxit,x0)
+% методы спуска (finding of minimum)
+% это градиентный спуск
+% есть еще координатный спуск
+function [x,flag,relres,iter,resvec,t]=min_res(A,b,tol,maxit,x0)
+x=x0;
+flag=0;
+r = b-A*x;
+nr = norm(r,Inf);
+nb = norm(b, Inf);
+resvec(1) = nr;
+
+% N = length(b);
+
+for iter=1:maxit
+    alfa = dot(A*r, r) / dot(A*r, A*r);
+    t(iter) = alfa;
+    x = x + alfa*r;
+    r = b- A*x;
+    nr = norm(r,Inf);
+    resvec(iter+1) = nr;
+    relres=nr/nb;       % note the slash
+    if relres <= tol
+        flag = 1;
+        break;
+    end
+end
+end
+
+
+
+
+
+
+
+
+
+%function [x,flag,relres,iter,resvc,t]=zeidel(A,b,tol,maxit,x0)
+% gradient (convergence?)
+% метод сорпряженного градиентов
+function [x,flag,relres,iter,alfa,beta]=con_grad(A,b,tol,maxit,x0)
+x=x0;
+flag=0;
+r = b-A*x;
+nr = norm(r,Inf);
+nb = norm(b, Inf);
+resvec(1) = nr;
+% N = length(b);
+
+% get direction 
+p=r;
+
+for iter=1:maxit
+    B = dot(r,r);
+    alfa_k = B / dot(A*p, p);
+    
+    % save to history, to view on graph
+    alfa(iter) = alfa_k;
+    x = x + alfa_k*p;
+    
+    % пересчитаем невязку
+    r = r - alfa_k * A * p;
+   
+    nr = norm(r,Inf);
+    resvec(iter+1) = nr;
+    relres=nr/nb;       % note the slash
+    
+    % check the precision
+    if relres <= tol
+        % precision is good enouth
+        flag = 1;
+        break;
+    end
+    
+    % else must recalculate direciton
+    beta_k = dot(r,r) / B;
+    p = r + beta_k*p;
+    
+    % save so we can view history later
+    beta(iter) = beta_k;
+end
+end
+
+
