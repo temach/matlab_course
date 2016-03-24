@@ -682,16 +682,16 @@ end
 %
 % x = eigenvector
 % lam = eigenvalue
-% lam = максисальное собственное число
-% х = правый собственный вектор
-% А = матрица
+% lam = РјР°РєСЃРёСЃР°Р»СЊРЅРѕРµ СЃРѕР±СЃС‚РІРµРЅРЅРѕРµ С‡РёСЃР»Рѕ
+% С… = РїСЂР°РІС‹Р№ СЃРѕР±СЃС‚РІРµРЅРЅС‹Р№ РІРµРєС‚РѕСЂ
+% Рђ = РјР°С‚СЂРёС†Р°
 % << A * x = lam * x >>
 
-% у = левый собственный векторr
+% Сѓ = Р»РµРІС‹Р№ СЃРѕР±СЃС‚РІРµРЅРЅС‹Р№ РІРµРєС‚РѕСЂr
 % (y)^(transposed) * A = lam * (y)^(transposed)
 % << yT * A = lam * yT >>
 
-% у = правый собственный вектор для А^(transposed)
+% Сѓ = РїСЂР°РІС‹Р№ СЃРѕР±СЃС‚РІРµРЅРЅС‹Р№ РІРµРєС‚РѕСЂ РґР»СЏ Рђ^(transposed)
 % << AT * y = lam * y >>
 
 %%
@@ -735,7 +735,7 @@ A2 = [0 2 4; 1 0 0 ; 0 1 0]
 d = eig(D1(2:3,2:3))
 
 %%
-% обобщенные собственные числа
+% РѕР±РѕР±С‰РµРЅРЅС‹Рµ СЃРѕР±СЃС‚РІРµРЅРЅС‹Рµ С‡РёСЃР»Р°
 % << A * x = lam * B * x >>
 % where B is n-by-n
 a = [6 -4 ; -4 7]
@@ -745,7 +745,7 @@ b = [-9 5; 5 -6]
 A * V(:,1) - D(1,1)*B*V(:,1)
 
 %%
-% форма хейзенберга
+% С„РѕСЂРјР° С…РµР№Р·РµРЅР±РµСЂРіР°
 % matrix form of hessenburg 
 % (similar to row-echelon/triangular/canonical form)
 % but one extra diagonal is filled
@@ -1210,7 +1210,7 @@ end%%
 % we can already solve y = F(t,y)
 % now we learn to solve F(t,y,y') = 0 
 % becasue F(t,y,y') can not be changed into F(t,y) form
-% матрица масс
+% РјР°С‚СЂРёС†Р° РјР°СЃСЃ
 % 
 % M(t,y) * y' = F(t,y)
 % if matrix M is constant then we can change to F(t,y) form
@@ -1789,12 +1789,12 @@ end
 clear;clc;
 n=3000;
 % first with sparce matrices
-AN=sprand(n,n,10/n);%razrazh (величина, % заполнения)
+AN=sprand(n,n,10/n);%razrazh (РІРµР»РёС‡РёРЅР°, % Р·Р°РїРѕР»РЅРµРЅРёСЏ)
 BN=sprand(n,n,10/n);
 tic; 
 CN=AN*BN; 
 toc
-%измеряет время выполнения
+%РёР·РјРµСЂСЏРµС‚ РІСЂРµРјСЏ РІС‹РїРѕР»РЅРµРЅРёСЏ
 disp([nnz(AN) nnz(BN)]);
 % now with full matrices
 A=full(AN);
@@ -1815,27 +1815,27 @@ BN=spfun(@sin,S)
 %%
 n=150;
 AN=sprand(n,n,0.01); 
-%для разложения Холецкого м-ца симметричная и положительно определенная
+%РґР»СЏ СЂР°Р·Р»РѕР¶РµРЅРёСЏ РҐРѕР»РµС†РєРѕРіРѕ Рј-С†Р° СЃРёРјРјРµС‚СЂРёС‡РЅР°СЏ Рё РїРѕР»РѕР¶РёС‚РµР»СЊРЅРѕ РѕРїСЂРµРґРµР»РµРЅРЅР°СЏ
 % so fix the random matrix to be suitable
-% make it симметричная
+% make it СЃРёРјРјРµС‚СЂРёС‡РЅР°СЏ
 AN=AN+AN'; 
-% make it положительно определенная
+% make it РїРѕР»РѕР¶РёС‚РµР»СЊРЅРѕ РѕРїСЂРµРґРµР»РµРЅРЅР°СЏ
 AN=AN+100*speye(n);
 
 subplot(3,3,1);
 spy(AN); title('AN');
 RN=chol(AN);
 subplot(3,2,2); spy(RN); title('RN: AN=RN^T*RN');
-%Перестановка строк-столбцов, чтобы м-ца была более разряженной:
+%РџРµСЂРµСЃС‚Р°РЅРѕРІРєР° СЃС‚СЂРѕРє-СЃС‚РѕР»Р±С†РѕРІ, С‡С‚РѕР±С‹ Рј-С†Р° Р±С‹Р»Р° Р±РѕР»РµРµ СЂР°Р·СЂСЏР¶РµРЅРЅРѕР№:
 perm=symrcm(AN);
-subplot(3,2,3);spy(AN(perm,perm)); title('AN после перестановок');
+subplot(3,2,3);spy(AN(perm,perm)); title('AN РїРѕСЃР»Рµ РїРµСЂРµСЃС‚Р°РЅРѕРІРѕРє');
 RN2=chol(AN(perm,perm));
-subplot(3,2,4); spy(RN2); title('RN: после перестановок symrcm');
+subplot(3,2,4); spy(RN2); title('RN: РїРѕСЃР»Рµ РїРµСЂРµСЃС‚Р°РЅРѕРІРѕРє symrcm');
 
 perm=symamd(AN);
-subplot(3,2,5);spy(AN(perm,perm)); title('AN после перестановок');
+subplot(3,2,5);spy(AN(perm,perm)); title('AN РїРѕСЃР»Рµ РїРµСЂРµСЃС‚Р°РЅРѕРІРѕРє');
 RN2=chol(AN(perm,perm));
-subplot(3,2,6); spy(RN2); title('RN: после перестановок symamd');
+subplot(3,2,6); spy(RN2); title('RN: РїРѕСЃР»Рµ РїРµСЂРµСЃС‚Р°РЅРѕРІРѕРє symamd');
 %%
 clear;clc;
 n=4000;
@@ -1847,8 +1847,8 @@ x=(1:n)'; b=AN*x;
 tic
 R=chol(AN);
 x=R\(R'\b);
-fprintf('Время решения chol %f \n', toc);
-%ТЕперь то же самое для м-цы перестновок
+fprintf('Р’СЂРµРјСЏ СЂРµС€РµРЅРёСЏ chol %f \n', toc);
+%РўР•РїРµСЂСЊ С‚Рѕ Р¶Рµ СЃР°РјРѕРµ РґР»СЏ Рј-С†С‹ РїРµСЂРµСЃС‚РЅРѕРІРѕРє
 % check if this wii be faster
 tic
 perm=symrcm(AN);
@@ -1857,7 +1857,7 @@ R1=chol(AN(perm,perm));
 x=R1\(R1'\b(perm));
 % also we must apply the permutation to x the same as to AN
 x(perm)=x;
-fprintf('Время решения chol + symrcm%f \n', toc);
+fprintf('Р’СЂРµРјСЏ СЂРµС€РµРЅРёСЏ chol + symrcm%f \n', toc);
 
 
 %%
@@ -1952,10 +1952,10 @@ disp(mse);
 % calculate pseudo inverse matrix
 % A*B*A = A
 % B*A*B = B
-% A*B = эрмитова (симметричная но по комплексном сопряжении тоже
-% симметрична)
-% B*A = эрмитова (симметричная но по комплексном сопряжении тоже
-% симметрична)
+% A*B = СЌСЂРјРёС‚РѕРІР° (СЃРёРјРјРµС‚СЂРёС‡РЅР°СЏ РЅРѕ РїРѕ РєРѕРјРїР»РµРєСЃРЅРѕРј СЃРѕРїСЂСЏР¶РµРЅРёРё С‚РѕР¶Рµ
+% СЃРёРјРјРµС‚СЂРёС‡РЅР°)
+% B*A = СЌСЂРјРёС‚РѕРІР° (СЃРёРјРјРµС‚СЂРёС‡РЅР°СЏ РЅРѕ РїРѕ РєРѕРјРїР»РµРєСЃРЅРѕРј СЃРѕРїСЂСЏР¶РµРЅРёРё С‚РѕР¶Рµ
+% СЃРёРјРјРµС‚СЂРёС‡РЅР°)
 % lsconv we find the most suitable x for Ax=b chich does not have solutions
 % with x = pinv(A) * b  we find the most suitable A^(-1)
 % now given Ax = b
@@ -2025,9 +2025,9 @@ iter
 
 
 %function [x,flag,relres,iter,resvc,t]=zeidel(A,b,tol,maxit,x0)
-% методы спуска (finding of minimum)
-% это градиентный спуск
-% есть еще координатный спуск
+% РјРµС‚РѕРґС‹ СЃРїСѓСЃРєР° (finding of minimum)
+% СЌС‚Рѕ РіСЂР°РґРёРµРЅС‚РЅС‹Р№ СЃРїСѓСЃРє
+% РµСЃС‚СЊ РµС‰Рµ РєРѕРѕСЂРґРёРЅР°С‚РЅС‹Р№ СЃРїСѓСЃРє
 function [x,flag,relres,iter,resvec,t]=min_res(A,b,tol,maxit,x0)
 x=x0;
 flag=0;
@@ -2063,7 +2063,7 @@ end
 
 %function [x,flag,relres,iter,resvc,t]=zeidel(A,b,tol,maxit,x0)
 % gradient (convergence?)
-% метод сорпряженного градиентов
+% РјРµС‚РѕРґ СЃРѕСЂРїСЂСЏР¶РµРЅРЅРѕРіРѕ РіСЂР°РґРёРµРЅС‚РѕРІ
 function [x,flag,relres,iter,alfa,beta]=con_grad(A,b,tol,maxit,x0)
 x=x0;
 flag=0;
@@ -2084,7 +2084,7 @@ for iter=1:maxit
     alfa(iter) = alfa_k;
     x = x + alfa_k*p;
     
-    % пересчитаем невязку
+    % РїРµСЂРµСЃС‡РёС‚Р°РµРј РЅРµРІСЏР·РєСѓ
     r = r - alfa_k * A * p;
    
     nr = norm(r,Inf);
@@ -2324,16 +2324,16 @@ end
 %
 % x = eigenvector
 % lam = eigenvalue
-% lam = максисальное собственное число
-% х = правый собственный вектор
-% А = матрица
+% lam = РјР°РєСЃРёСЃР°Р»СЊРЅРѕРµ СЃРѕР±СЃС‚РІРµРЅРЅРѕРµ С‡РёСЃР»Рѕ
+% С… = РїСЂР°РІС‹Р№ СЃРѕР±СЃС‚РІРµРЅРЅС‹Р№ РІРµРєС‚РѕСЂ
+% Рђ = РјР°С‚СЂРёС†Р°
 % << A * x = lam * x >>
 
-% у = левый собственный векторr
+% Сѓ = Р»РµРІС‹Р№ СЃРѕР±СЃС‚РІРµРЅРЅС‹Р№ РІРµРєС‚РѕСЂr
 % (y)^(transposed) * A = lam * (y)^(transposed)
 % << yT * A = lam * yT >>
 
-% у = правый собственный вектор для А^(transposed)
+% Сѓ = РїСЂР°РІС‹Р№ СЃРѕР±СЃС‚РІРµРЅРЅС‹Р№ РІРµРєС‚РѕСЂ РґР»СЏ Рђ^(transposed)
 % << AT * y = lam * y >>
 
 %%
@@ -2377,7 +2377,7 @@ A2 = [0 2 4; 1 0 0 ; 0 1 0]
 d = eig(D1(2:3,2:3))
 
 %%
-% обобщенные собственные числа
+% РѕР±РѕР±С‰РµРЅРЅС‹Рµ СЃРѕР±СЃС‚РІРµРЅРЅС‹Рµ С‡РёСЃР»Р°
 % << A * x = lam * B * x >>
 % where B is n-by-n
 a = [6 -4 ; -4 7]
@@ -2387,7 +2387,7 @@ b = [-9 5; 5 -6]
 A * V(:,1) - D(1,1)*B*V(:,1)
 
 %%
-% форма хейзенберга
+% С„РѕСЂРјР° С…РµР№Р·РµРЅР±РµСЂРіР°
 % matrix form of hessenburg 
 % (similar to row-echelon/triangular/canonical form)
 % but one extra diagonal is filled
@@ -2852,7 +2852,7 @@ end%%
 % we can already solve y = F(t,y)
 % now we learn to solve F(t,y,y') = 0 
 % becasue F(t,y,y') can not be changed into F(t,y) form
-% матрица масс
+% РјР°С‚СЂРёС†Р° РјР°СЃСЃ
 % 
 % M(t,y) * y' = F(t,y)
 % if matrix M is constant then we can change to F(t,y) form
@@ -3431,12 +3431,12 @@ end
 clear;clc;
 n=3000;
 % first with sparce matrices
-AN=sprand(n,n,10/n);%razrazh (величина, % заполнения)
+AN=sprand(n,n,10/n);%razrazh (РІРµР»РёС‡РёРЅР°, % Р·Р°РїРѕР»РЅРµРЅРёСЏ)
 BN=sprand(n,n,10/n);
 tic; 
 CN=AN*BN; 
 toc
-%измеряет время выполнения
+%РёР·РјРµСЂСЏРµС‚ РІСЂРµРјСЏ РІС‹РїРѕР»РЅРµРЅРёСЏ
 disp([nnz(AN) nnz(BN)]);
 % now with full matrices
 A=full(AN);
@@ -3457,27 +3457,27 @@ BN=spfun(@sin,S)
 %%
 n=150;
 AN=sprand(n,n,0.01); 
-%для разложения Холецкого м-ца симметричная и положительно определенная
+%РґР»СЏ СЂР°Р·Р»РѕР¶РµРЅРёСЏ РҐРѕР»РµС†РєРѕРіРѕ Рј-С†Р° СЃРёРјРјРµС‚СЂРёС‡РЅР°СЏ Рё РїРѕР»РѕР¶РёС‚РµР»СЊРЅРѕ РѕРїСЂРµРґРµР»РµРЅРЅР°СЏ
 % so fix the random matrix to be suitable
-% make it симметричная
+% make it СЃРёРјРјРµС‚СЂРёС‡РЅР°СЏ
 AN=AN+AN'; 
-% make it положительно определенная
+% make it РїРѕР»РѕР¶РёС‚РµР»СЊРЅРѕ РѕРїСЂРµРґРµР»РµРЅРЅР°СЏ
 AN=AN+100*speye(n);
 
 subplot(3,3,1);
 spy(AN); title('AN');
 RN=chol(AN);
 subplot(3,2,2); spy(RN); title('RN: AN=RN^T*RN');
-%Перестановка строк-столбцов, чтобы м-ца была более разряженной:
+%РџРµСЂРµСЃС‚Р°РЅРѕРІРєР° СЃС‚СЂРѕРє-СЃС‚РѕР»Р±С†РѕРІ, С‡С‚РѕР±С‹ Рј-С†Р° Р±С‹Р»Р° Р±РѕР»РµРµ СЂР°Р·СЂСЏР¶РµРЅРЅРѕР№:
 perm=symrcm(AN);
-subplot(3,2,3);spy(AN(perm,perm)); title('AN после перестановок');
+subplot(3,2,3);spy(AN(perm,perm)); title('AN РїРѕСЃР»Рµ РїРµСЂРµСЃС‚Р°РЅРѕРІРѕРє');
 RN2=chol(AN(perm,perm));
-subplot(3,2,4); spy(RN2); title('RN: после перестановок symrcm');
+subplot(3,2,4); spy(RN2); title('RN: РїРѕСЃР»Рµ РїРµСЂРµСЃС‚Р°РЅРѕРІРѕРє symrcm');
 
 perm=symamd(AN);
-subplot(3,2,5);spy(AN(perm,perm)); title('AN после перестановок');
+subplot(3,2,5);spy(AN(perm,perm)); title('AN РїРѕСЃР»Рµ РїРµСЂРµСЃС‚Р°РЅРѕРІРѕРє');
 RN2=chol(AN(perm,perm));
-subplot(3,2,6); spy(RN2); title('RN: после перестановок symamd');
+subplot(3,2,6); spy(RN2); title('RN: РїРѕСЃР»Рµ РїРµСЂРµСЃС‚Р°РЅРѕРІРѕРє symamd');
 %%
 clear;clc;
 n=4000;
@@ -3489,8 +3489,8 @@ x=(1:n)'; b=AN*x;
 tic
 R=chol(AN);
 x=R\(R'\b);
-fprintf('Время решения chol %f \n', toc);
-%ТЕперь то же самое для м-цы перестновок
+fprintf('Р’СЂРµРјСЏ СЂРµС€РµРЅРёСЏ chol %f \n', toc);
+%РўР•РїРµСЂСЊ С‚Рѕ Р¶Рµ СЃР°РјРѕРµ РґР»СЏ Рј-С†С‹ РїРµСЂРµСЃС‚РЅРѕРІРѕРє
 % check if this wii be faster
 tic
 perm=symrcm(AN);
@@ -3499,7 +3499,7 @@ R1=chol(AN(perm,perm));
 x=R1\(R1'\b(perm));
 % also we must apply the permutation to x the same as to AN
 x(perm)=x;
-fprintf('Время решения chol + symrcm%f \n', toc);
+fprintf('Р’СЂРµРјСЏ СЂРµС€РµРЅРёСЏ chol + symrcm%f \n', toc);
 
 
 %%
@@ -3594,10 +3594,10 @@ disp(mse);
 % calculate pseudo inverse matrix
 % A*B*A = A
 % B*A*B = B
-% A*B = эрмитова (симметричная но по комплексном сопряжении тоже
-% симметрична)
-% B*A = эрмитова (симметричная но по комплексном сопряжении тоже
-% симметрична)
+% A*B = СЌСЂРјРёС‚РѕРІР° (СЃРёРјРјРµС‚СЂРёС‡РЅР°СЏ РЅРѕ РїРѕ РєРѕРјРїР»РµРєСЃРЅРѕРј СЃРѕРїСЂСЏР¶РµРЅРёРё С‚РѕР¶Рµ
+% СЃРёРјРјРµС‚СЂРёС‡РЅР°)
+% B*A = СЌСЂРјРёС‚РѕРІР° (СЃРёРјРјРµС‚СЂРёС‡РЅР°СЏ РЅРѕ РїРѕ РєРѕРјРїР»РµРєСЃРЅРѕРј СЃРѕРїСЂСЏР¶РµРЅРёРё С‚РѕР¶Рµ
+% СЃРёРјРјРµС‚СЂРёС‡РЅР°)
 % lsconv we find the most suitable x for Ax=b chich does not have solutions
 % with x = pinv(A) * b  we find the most suitable A^(-1)
 % now given Ax = b
@@ -3667,9 +3667,9 @@ iter
 
 
 %function [x,flag,relres,iter,resvc,t]=zeidel(A,b,tol,maxit,x0)
-% методы спуска (finding of minimum)
-% это градиентный спуск
-% есть еще координатный спуск
+% РјРµС‚РѕРґС‹ СЃРїСѓСЃРєР° (finding of minimum)
+% СЌС‚Рѕ РіСЂР°РґРёРµРЅС‚РЅС‹Р№ СЃРїСѓСЃРє
+% РµСЃС‚СЊ РµС‰Рµ РєРѕРѕСЂРґРёРЅР°С‚РЅС‹Р№ СЃРїСѓСЃРє
 function [x,flag,relres,iter,resvec,t]=min_res(A,b,tol,maxit,x0)
 x=x0;
 flag=0;
@@ -3705,7 +3705,7 @@ end
 
 %function [x,flag,relres,iter,resvc,t]=zeidel(A,b,tol,maxit,x0)
 % gradient (convergence?)
-% метод сорпряженного градиентов
+% РјРµС‚РѕРґ СЃРѕСЂРїСЂСЏР¶РµРЅРЅРѕРіРѕ РіСЂР°РґРёРµРЅС‚РѕРІ
 function [x,flag,relres,iter,alfa,beta]=con_grad(A,b,tol,maxit,x0)
 x=x0;
 flag=0;
@@ -3726,7 +3726,7 @@ for iter=1:maxit
     alfa(iter) = alfa_k;
     x = x + alfa_k*p;
     
-    % пересчитаем невязку
+    % РїРµСЂРµСЃС‡РёС‚Р°РµРј РЅРµРІСЏР·РєСѓ
     r = r - alfa_k * A * p;
    
     nr = norm(r,Inf);
